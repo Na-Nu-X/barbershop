@@ -6,7 +6,74 @@ from datetime import datetime, timedelta, time
 from rest_framework.views import csrf_exempt
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
-from .models import Service, Appointment, ContactMessage
+from django.utils import timezone
+from .models import Service, Appointment, ContactMessage, BarbershopConfig, OpeningHour
+
+@csrf_exempt
+def getStatus(request):
+    if request.method != "GET":
+        return JsonResponse({
+            "success": False,
+            "message": "Stav podniku a otváracie hodiny je možné získať len pomocou GET metódy."
+        }, status=405)
+
+    config = BarbershopConfig.objects.first() # Gets The Global Config
+    
+    if config and config.is_force_closed:
+        return JsonResponse({
+            "success": True,
+            "message": "Stav podniku bol úspešne získaný.",
+            "is_open": False,
+            "status": "Mimoriadne zatvorené",
+            "reason": config.closure_reason or "Dôvod nebol uvedený."
+        }, status=200)
+
+    now = timezone.localtime(timezone.now()) # Gets The Current Time
+    current_day_index = now.isoweekday() # Gets The Current Day Index
+    current_time = now.time() # Gets The Current Time
+
+    try:
+        opening_hour = OpeningHour.objects.get(day_of_week=current_day_index) # Gets The Opening Hour For The Current Day
+
+    except OpeningHour.DoesNotExist:
+        return JsonResponse({
+            "success": True,
+            "message": "Stav podniku bol úspešne získaný.",
+            "is_open": False,
+            "status": "Zatvorené",
+            "reason": "Neboli zadané otváracie hodiny."
+        }, status=200)
+
+    if opening_hour.is_closed_all_day:
+        return JsonResponse({
+            "success": True,
+            "message": "Stav podniku bol úspešne získaný.",
+            "is_open": False,
+            "status": "Zatvorené",
+            "reason": "Pravidelný zatvárací deň."
+        })
+
+    is_inside_opening_hours = opening_hour.open_time <= current_time <= opening_hour.close_time # Checks If The Current Time Is In Opening Hours
+
+    if is_inside_opening_hours:
+        return JsonResponse({
+            "success": True,
+            "message": "Stav podniku bol úspešne získaný.",
+            "is_open": True,
+            "status": "Otvorené",
+            "reason": None,
+            "open_till": opening_hour.close_time.strftime("%H:%M")
+        })
+
+    else:
+        return JsonResponse({
+            "success": True,
+            "message": "Stav podniku bol úspešne získaný.",
+            "is_open": False,
+            "status": "Zatvorené",
+            "reason": "Mimo otváracích hodín.",
+            "next_open": opening_hour.open_time.strftime("%H:%M")
+        })
 
 @csrf_exempt
 def getAvailableServices(request):
@@ -61,7 +128,7 @@ def getAvailableSlots(request):
         all_slots.append(start_time.time()) # Adds The Available Slot
         start_time += timedelta(minutes=SLOT_DURATION) # Increases The Start Time
 
-    booked_appointments = Appointment.objects.filter(date=chosen_date) # Gets The Already Booked Appointments For The Chosen Date
+    booked_appointments = Appointment.objects.filter(date=chosen_date, is_active=True) # Gets The Already Booked Appointments For The Chosen Date
     booked_times = [app.time_start for app in booked_appointments] # Gets The Already Booked Times For The Chosen Date
 
     slots_data = [] # Stores The Slots Data

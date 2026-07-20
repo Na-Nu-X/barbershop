@@ -1,5 +1,78 @@
 from django.db import models
 
+class BarbershopConfig(models.Model):
+    is_force_closed = models.BooleanField(
+        verbose_name="Je mimoriadne zatvorené", 
+        help_text="Informácia o tom, či je prevádzka mimoriadne zatvorená (napr. sviatok).",
+        default=False, 
+        null=False
+    )
+
+    closure_reason = models.CharField(
+        verbose_name="Dôvod zatvorenia", 
+        help_text="Dôvod zatvorenia (zobrazené na stránke).",
+        max_length=250, 
+        blank=True, 
+        null=True, 
+    )
+
+    class Meta:
+        verbose_name = "Globálne nastavenie"
+        verbose_name_plural = "Globálne nastavenia"
+
+    def __str__(self):
+        return f"Status: {'ZATVORENÉ' if self.is_force_closed else 'OTVORENÉ'}"
+
+class OpeningHour(models.Model):
+    DAY_CHOICES = [
+        (1, "Pondelok"),
+        (2, "Utorok"),
+        (3, "Streda"),
+        (4, "Štvrtok"),
+        (5, "Piatok"),
+        (6, "Sobota"),
+        (7, "Nedeľa")
+    ]
+
+    day_of_week = models.IntegerField(
+        verbose_name="Deň v týždni", 
+        help_text="Deň v týždni.", 
+        choices=DAY_CHOICES, 
+        default=1, 
+        unique=True,
+        null=False
+    )
+
+    open_time = models.TimeField(
+        verbose_name="Otvárame o",
+        help_text="Čas otvárania.",
+        null=False
+    )
+
+    close_time = models.TimeField(
+        verbose_name="Zatvárame o",
+        help_text="Čas zatvárania.",
+        null=False
+    )
+
+    is_closed_all_day = models.BooleanField(
+        verbose_name="Zatvorené celý deň", 
+        help_text="Informácia o tom, či je prevádzka zatvorená celý deň.",
+        default=False, 
+        null=False
+    )
+
+    class Meta:
+        verbose_name = "Otváracia hodina"
+        verbose_name_plural = "Otváracie hodiny"
+        ordering = ["day_of_week"]
+
+    def __str__(self):
+        if self.is_closed_all_day:
+            return f"{self.day_of_week}: Zatvorené"
+
+        return f"{self.day_of_week}: {self.open_time.strftime('%H:%M')} - {self.close_time.strftime('%H:%M')}"
+
 class Service(models.Model):
     title = models.CharField(
         verbose_name="Názov", 
@@ -69,6 +142,13 @@ class Appointment(models.Model):
     time_start = models.TimeField(
         verbose_name="Začiatok",
         help_text="Začiatok termínu.",
+        null=False
+    )
+
+    is_active = models.BooleanField(
+        verbose_name="Je platný", 
+        help_text="Informácia o tom, či vybraný termín je platný.",
+        default=True, 
         null=False
     )
 
