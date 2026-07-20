@@ -78,3 +78,48 @@ class Appointment(models.Model):
 
     def __str__(self):
         return f"{self.date} o {self.time_start} - {self.first_name} {self.last_name}"
+
+class ContactMessage(models.Model):
+    first_name = models.CharField(
+        verbose_name="Meno", 
+        help_text="Meno zákazníka.",
+        max_length=20, 
+        null=False
+    )
+
+    last_name = models.CharField(
+        verbose_name="Priezvisko", 
+        help_text="Priezvisko zákazníka.",
+        max_length=50, 
+        null=False
+    )
+
+    email_address = models.CharField(
+        verbose_name="E-mailová adresa", 
+        help_text="E-mailová adresa zákazníka.",
+        max_length=50,
+        null=False
+    )
+
+
+    message = models.TextField(
+        verbose_name="Správa", 
+        help_text="Obsah správy.",
+        max_length=250, 
+        null=True, 
+        blank=True
+    )
+
+    creation_time = models.DateTimeField(
+        verbose_name="Čas odoslania",
+        help_text="Čas odoslania správy.", 
+        auto_now_add=True,
+        null=False
+    )
+
+    class Meta:
+        verbose_name = "Správa"
+        verbose_name_plural = "Správy"
+
+    def __str__(self):
+        return f"Správa od {self.first_name} {self.last_name}"

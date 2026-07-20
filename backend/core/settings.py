@@ -10,7 +10,17 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Environment Variables
+
+SETTINGS_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SETTINGS_DIR.parent.parent
+ENV_PATH = PROJECT_ROOT / "barbershop" / ".env"
+
+load_dotenv(dotenv_path=ENV_PATH)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,10 +30,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-z6175uwuc78kj&x+pt-*sogb+xdu4=v7hc4_gq(v_0wefjy56v'
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = []
 
@@ -31,6 +41,11 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # Unfold Admin Page
+    "unfold",
+    "unfold.contrib.filters",
+    "unfold.contrib.forms",
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -131,15 +146,41 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# CORS
-
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:4200",
-    "http://127.0.0.1:4200",
-]
-
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ]
+}
+
+# CORS
+
+CORS_ALLOWED_ORIGINS = [
+    os.environ.get("FRONT_END_DOMAIN_URL", "http://localhost:4200/").rstrip('/')
+]
+
+# Gmail
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'behulpatrik@gmail.com'
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# Unfold Admin Page
+
+UNFOLD = {
+    "SITE_TITLE": "Barbershop Admin",
+    "SITE_HEADER": "Barbershop správa",
+    "SITE_URL": "/",
+    
+    "COLORS": {
+        "primary": {
+            "50": "250 245 255",
+            "100": "243 232 255",
+            "500": "168 85 247",
+            "600": "147 51 234",
+            "700": "126 34 206"
+        }
+    }
 }

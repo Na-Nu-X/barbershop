@@ -1,9 +1,12 @@
+import json
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from datetime import datetime, timedelta, time
 from rest_framework.views import csrf_exempt
-from .models import Service, Appointment
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from .models import Service, Appointment, ContactMessage
 
 @csrf_exempt
 def getAvailableServices(request):
@@ -131,3 +134,56 @@ def createAppointment(request):
         "success": True,
         "message": f"Rezervácia na meno {first_name} {last_name} bola úspešne vytvorená!"
     }, status=201)
+
+@csrf_exempt
+def sendMessage(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body) # Gets The Data
+
+            first_name = data.get("first_name") # Gets The First Name
+            last_name = data.get("last_name") # Gets The Last Name
+            email_address = data.get("email_address") # Gets The E-mail Address
+            message = data.get("message") # Gets The Message
+            
+            # Saves The New Message
+            ContactMessage.objects.create(
+                first_name=first_name,
+                last_name=last_name,
+                email_address=email_address,
+                message=message
+            )
+
+            # Sends Mail
+            subject = f"Barbershop - správa od zákazníka"
+            text_content = f"{first_name} {last_name} - {email_address}\n\n{message}"
+            sender = email_address
+            receiver = [settings.EMAIL_HOST_USER]
+            html_content = f"""
+                <p>
+                    <b>{first_name} {last_name} - {email_address}</b><br><br>
+                    {message}
+                </p>
+            """
+
+            mail_message = EmailMultiAlternatives(subject, text_content, sender, receiver)
+            mail_message.attach_alternative(html_content, "text/html")
+
+            mail_message.send()
+            
+            return JsonResponse({
+                "success": True, 
+                "message": "Správa bola odoslaná."
+            }, status=200)
+
+        except Exception as e:
+            print(e)
+            return JsonResponse({
+                "success": False, 
+                "message": "Pri odosielaní správy došlo k chybe."
+            }, status=500)
+            
+    return JsonResponse({
+        "success": False, 
+        "message": "Správa sa dá odoslať len pomocou POST metódy."
+    }, status=405)
