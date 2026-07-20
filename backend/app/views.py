@@ -7,7 +7,7 @@ from rest_framework.views import csrf_exempt
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.utils import timezone
-from .models import Service, Appointment, ContactMessage, BarbershopConfig, OpeningHour
+from .models import Service, Appointment, ContactMessage, BarbershopConfig, OpeningHour, Barber
 
 @csrf_exempt
 def getStatus(request):
@@ -254,3 +254,32 @@ def sendMessage(request):
         "success": False, 
         "message": "Správa sa dá odoslať len pomocou POST metódy."
     }, status=405)
+
+@csrf_exempt
+def getBarbers(request):
+    barbers = Barber.objects.filter(is_active=True) # Gets All Barbers
+
+    # Creates Valid Format Of Barbers For JSON Response
+    barbers_data = [] # Stores The Barbers Data
+
+    for one_barber in barbers:
+        portfolio = [
+            request.build_absolute_uri(one_image.image.url) 
+            for one_image in one_barber.portfolio_images.all() if one_image.image
+        ]
+
+        barbers_data.append({
+            "id": one_barber.id,
+            "first_name": one_barber.first_name,
+            "nickname": one_barber.nickname,
+            "bio": one_barber.bio,
+            "profile_picture": request.build_absolute_uri(one_barber.profile_picture.url) if one_barber.profile_picture else None,
+            "instagram": one_barber.instagram,
+            "portfolio": portfolio
+        })
+
+    return JsonResponse({
+        "success": True, 
+        "message": "Dostupní barberi boli nájdení.",
+        "barbers": barbers_data
+    }, status=200)

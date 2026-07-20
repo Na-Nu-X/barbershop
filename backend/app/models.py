@@ -203,3 +203,89 @@ class ContactMessage(models.Model):
 
     def __str__(self):
         return f"Správa od {self.first_name} {self.last_name}"
+
+class Barber(models.Model):
+    first_name = models.CharField(
+        verbose_name="Meno", 
+        help_text="Meno barbera.",
+        max_length=20, 
+        null=False
+    )
+
+    nickname = models.CharField(
+        verbose_name="Prezývka", 
+        help_text="Prezývka barbera.",
+        max_length=20, 
+        null=True,
+        blank=True
+    )
+
+    bio = models.TextField(
+        verbose_name="Bio", 
+        help_text="Niečo o barberovi.",
+        max_length=250, 
+        null=True, 
+        blank=True
+    )
+
+    profile_picture = models.ImageField(
+        upload_to="barbers/profiles/",
+        verbose_name="Profilový obrázok",
+        help_text="Profilový obrázok.", 
+        null=True, 
+        blank=True,
+    )
+
+    instagram = models.URLField(
+        verbose_name="Instagram", 
+        help_text="Link k Instagram účtu.", 
+        max_length=200, 
+        null=True
+    )
+
+    is_active = models.BooleanField(
+        verbose_name="Aktívny", 
+        help_text="Informácia o tom, či vybraný barber je aktívny.",
+        default=True, 
+        null=False
+    )
+
+    class Meta:
+        verbose_name = "Barber"
+        verbose_name_plural = "Barberi"
+
+    def __str__(self):
+        return self.nickname or self.first_name
+
+class PortfolioImage(models.Model):
+    barber = models.ForeignKey(
+        Barber, 
+        verbose_name="Barber",
+        help_text="Barber ktorému patrí portfólio.", 
+        on_delete=models.CASCADE,
+        related_name="portfolio_images",
+        null=False
+    )
+
+    image = models.ImageField(
+        upload_to="barbers/portfolio/",
+        verbose_name="Fotka práce",
+        help_text="Fotka práce barbera.", 
+        null=True, 
+        blank=True,
+    )
+
+    caption = models.CharField(
+        verbose_name="Popis", 
+        help_text="Popis obrázka (voliteľné).",
+        max_length=50, 
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        verbose_name = "Obrázok portfólia"
+        verbose_name_plural = "Obrázoky portfólia"
+
+    def __str__(self):
+        return f"Fotka - {self.barber.first_name}"

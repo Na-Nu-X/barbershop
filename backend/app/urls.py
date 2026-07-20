@@ -7,4 +7,5 @@ urlpatterns = [
     path('api/get-available-slots/', views.getAvailableSlots, name='get_available_slots_url'),
     path('api/create-appointment/', views.createAppointment, name='create_appointment_url'),
     path('api/contact/', views.sendMessage, name='send_message_url'),
+    path('api/get-barbers/', views.getBarbers, name='get_barbers_url')
 ]

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
-from .models import BarbershopConfig, OpeningHour, Service, Appointment, ContactMessage
+from .models import BarbershopConfig, OpeningHour, Service, Appointment, ContactMessage, Barber, PortfolioImage
 
 @admin.register(BarbershopConfig)
 class BarbershopConfigAdmin(ModelAdmin):
@@ -119,3 +119,58 @@ class ContactMessageAdmin(ModelAdmin):
     ]
 
     list_editable = []
+
+@admin.register(Barber)
+class BarberAdmin(ModelAdmin):
+    list_display = [
+        "id",
+        "first_name", 
+        "nickname", 
+        "bio",
+        "profile_picture",
+        "instagram",
+        "is_active"
+    ]
+
+    list_filter = [
+        "first_name", 
+        "nickname", 
+        "is_active"
+    ]
+
+    search_fields = [
+        "first_name", 
+        "nickname"
+    ]
+
+    list_editable = [
+        "first_name", 
+        "nickname", 
+        "bio",
+        "profile_picture",
+        "instagram",
+        "is_active"
+    ]
+
+@admin.register(PortfolioImage)
+class PortfolioImageAdmin(ModelAdmin):
+    list_display = [
+        "id",
+        "barber", 
+        "image", 
+        "caption"
+    ]
+
+    list_filter = [
+        "barber"
+    ]
+
+    search_fields = [
+        "caption"
+    ]
+
+    list_editable = [
+        "barber", 
+        "image", 
+        "caption"
+    ]
