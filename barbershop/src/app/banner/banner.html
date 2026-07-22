@@ -1,0 +1,17 @@
+<div class="banner">
+    <h1>Vitaj! Aký chceš strih?</h1>
+
+    <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Veniam dolor, doloribus eligendi error debitis assumenda vero? Aperiam, veniam labore delectus et mollitia accusamus illo voluptatum recusandae! Sequi fugit tempora placeat!</p>
+
+    <div class="buttons">
+        <button class="book" (click)="scrollTo('.booking_container')">Rezervovať</button>
+        <button class="order" (click)="scrollTo('.contact_form')">Kontakt</button>
+    </div>
+
+    <p class="status" [class.open]="is_open" [class.closed]="!is_open">
+        {{ status }}
+        <span *ngIf="is_open && open_till">(do {{ open_till }})</span>
+        <span *ngIf="!is_open && next_open">(otvárame o {{ next_open }})</span>
+        <span *ngIf="reason && reason !== '' && !next_open">({{ reason }})</span>
+    </p>
+</div>

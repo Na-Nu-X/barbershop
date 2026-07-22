@@ -1,0 +1,418 @@
+@import "./variables";
+
+/***************
+ General Mixins
+***************/
+
+// Center Positioning
+
+@mixin position_center($position: absolute) {
+    position: $position;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+@mixin flex_center($direction: row) {
+    display: flex;
+    flex-direction: $direction;
+    align-items: center;
+    justify-content: center;
+}
+
+@mixin loading($size: 10px) {
+    width: $size;
+    height: $size;
+    font-size: $size;
+    color: darken($secondary-color, 20%);
+    border-radius: 50%;
+    transition: opacity 1s ease, visibility 1s ease;
+    animation: preloaderSpin 1s infinite linear;
+    z-index: 3000;
+
+    &.hidden {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    /***********
+     Key Frames
+    ***********/
+
+    @keyframes preloaderSpin {
+        0%,
+        100% {
+            box-shadow: 0 -3em 0 0.2em, 
+            2em -2em 0 0em, 3em 0 0 -1em, 
+            2em 2em 0 -1em, 0 3em 0 -1em, 
+            -2em 2em 0 -1em, -3em 0 0 -1em, 
+            -2em -2em 0 0;
+        }
+    
+        12.5% {
+            box-shadow: 0 -3em 0 0, 2em -2em 0 0.2em, 
+            3em 0 0 0, 2em 2em 0 -1em, 0 3em 0 -1em, 
+            -2em 2em 0 -1em, -3em 0 0 -1em, 
+            -2em -2em 0 -1em;
+        }
+    
+        25% {
+            box-shadow: 0 -3em 0 -0.5em, 
+            2em -2em 0 0, 3em 0 0 0.2em, 
+            2em 2em 0 0, 0 3em 0 -1em, 
+            -2em 2em 0 -1em, -3em 0 0 -1em, 
+            -2em -2em 0 -1em;
+        }
+    
+        37.5% {
+            box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em,
+            3em 0em 0 0, 2em 2em 0 0.2em, 0 3em 0 0em, 
+            -2em 2em 0 -1em, -3em 0em 0 -1em, -2em -2em 0 -1em;
+        }
+    
+        50% {
+            box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em,
+            3em 0 0 -1em, 2em 2em 0 0em, 0 3em 0 0.2em, 
+            -2em 2em 0 0, -3em 0em 0 -1em, -2em -2em 0 -1em;
+        }
+    
+        62.5% {
+            box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em,
+            3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 0, 
+            -2em 2em 0 0.2em, -3em 0 0 0, -2em -2em 0 -1em;
+        }
+    
+        75% {
+            box-shadow: 0em -3em 0 -1em, 2em -2em 0 -1em, 
+            3em 0em 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, 
+            -2em 2em 0 0, -3em 0em 0 0.2em, -2em -2em 0 0;
+        }
+        
+        87.5% {
+            box-shadow: 0em -3em 0 0, 2em -2em 0 -1em, 
+            3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, 
+            -2em 2em 0 0, -3em 0em 0 0, -2em -2em 0 0.2em;
+        }
+    }
+}
+
+// Black Button
+
+@mixin black_button($width: 200px, $border-radius: $small-border-radius) {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: $width;
+    padding: 10px 20px;
+    font-weight: 600;
+    font-family: inherit;
+    background-color: $black-color; 
+    color: $secondary-color;
+    border: 2px solid transparent;
+    border-radius: $border-radius;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+        transform: translateY(-2px);
+        background-color: lighten($black-color, 10%);
+        box-shadow: 0 5px 15px transparentize($black-color, 0.8);
+    }
+    
+    &:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 5px transparentize($black-color, 0.8);
+    }
+    
+    &:disabled {
+        opacity: 0.6;
+        transform: none;
+        background-color: transparentize($black-color, 0.4);
+        box-shadow: none;
+        cursor: not-allowed;
+    }
+}
+
+// Gray Button
+
+@mixin gray_button($width: 200px, $border-radius: $small-border-radius) {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: $width;
+    padding: 10px 20px;
+    font-weight: 600;
+    font-family: inherit;
+    background-color: transparent; 
+    color: $black-color;
+    border: 2px solid $black-color;
+    border-radius: $border-radius;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &:hover {
+        transform: translateY(-2px);
+        background-color: transparentize($gray-color, 0.8); 
+        box-shadow: 0 6px 15px transparentize($black-color, 0.9);
+    }
+    
+    &:active {
+        transform: translateY(0);
+        box-shadow: none;
+        background-color: transparentize($gray-color, 0.6);
+    }
+    
+    &:disabled {
+        opacity: 0.4;
+        transform: none;
+        border-color: transparentize($black-color, 0.6);
+        color: transparentize($black-color, 0.6);
+        box-shadow: none;
+        cursor: not-allowed;
+    }
+}
+
+// Tooltip
+
+@mixin tooltip($top: -5px) {
+    &::before,
+    &::after {
+        --scale: 0;
+
+        position: absolute;
+        top: $top;
+        left: 50%;
+        transform: translateX(-50%) translateY(var(--translate-y, 0)) scale(var(--scale));
+        transform-origin: bottom center;
+        pointer-events: none;
+        transition: 0.3s transform 0s;
+    }
+
+    &::before {
+        --translate-y: calc(-100% - 10px);
+
+        content: attr(data-tooltip);
+        width: max-content;
+        max-width: 250px;
+        padding: 5px;
+        text-align: left;
+        white-space: pre-line;
+        font-size: 0.8em;
+        background-color: $main-color;
+        color: $secondary-color;
+        border-color: $main-color;
+        border-radius: $small-border-radius;
+        text-shadow: 0px 0px 5px $main-color;
+    }
+
+    &::after {
+        --translate-y: calc(-1 * 10px);
+        
+        content: "";
+        border: 10px solid transparent;
+        border-top-color: $main-color;
+        transform-origin: top center;
+    }
+
+    &:hover {
+        &::before,
+        &::after {
+            --scale: 1;
+            transition: 0.3s transform 1s;
+        }
+    }
+}
+
+// Form Input
+
+@mixin form_input {
+    width: 100%;
+    padding: 10px 15px;
+    background-color: darken($secondary-color, 3%);
+    color: transparentize($main-color, 0.4);
+    border: 1px solid darken($secondary-color, 10%);
+    border-radius: $small-border-radius;
+    font-family: inherit;
+    outline: none;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &::placeholder {
+        color: darken($secondary-color, 40%);
+    }
+
+    &:focus-visible {
+        background-color: $secondary-color;
+        border-color: $black-color;
+        box-shadow: 0 0 0 3px transparentize($black-color, 0.8);
+    }
+
+    &:-webkit-autofill {
+        -webkit-text-fill-color: transparentize($main-color, 0.4);
+        transition: width 0.3s ease, background-color 9999s ease;
+
+        &:hover,
+        &:focus {
+            -webkit-text-fill-color: transparentize($main-color, 0.4);
+            transition: width 0.3s ease, background-color 9999s ease;
+        }
+    }
+}
+
+// Scrollbar
+
+@mixin scrollbar($direction: "vertical") {
+    // Vertical Scrollbar
+    @if $direction == "vertical" {
+        overflow-x: hidden;
+        overflow-y: auto;
+
+        &::-webkit-scrollbar {
+            width: 5px;
+        }
+    }
+
+    // Horizontal Scrollbar
+    @else if $direction == "horizontal" {
+        overflow-x: auto;
+        overflow-y: hidden;
+
+        &::-webkit-scrollbar {
+            height: 5px;
+        }
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: darken($secondary-color, 10%);
+        border-radius: 2.5px;
+
+        &:hover {
+            background-color: darken($secondary-color, 20%);
+            cursor: pointer;
+        }
+    }
+
+    &::-webkit-scrollbar-track {
+        background: darken($secondary-color, 5%);
+        border-radius: 2.5px;
+    }
+}
+
+// Crop Text
+
+@mixin crop_text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+// Focus
+
+@mixin focus {
+    &:focus-visible {
+        outline: 2px solid $red-color !important;
+        outline-offset: 2px !important;
+    }
+}
+
+// Custom Select Menu
+
+@mixin custom_select_menu($options_list_height: 150px, $scrollbar: hidden) {
+    position: relative;
+    max-width: 100%;
+    width: 100%;
+    cursor: pointer;
+
+    .select {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        height: 40px;
+        padding: 0px 15px;
+        color: transparentize($main-color, 0.4);
+        background-color: darken($secondary-color, 3%);
+        border: 1px solid darken($secondary-color, 10%);
+        border-radius: $small-border-radius;
+        transition: border 0.3s ease, box-shadow 0.3s ease;
+
+        &:hover,
+        &:focus-visible {
+            background-color: $secondary-color;
+            border-color: $black-color;
+            box-shadow: 0 0 0 3px transparentize($black-color, 0.8);
+
+            .fa-angle-down,
+            .fa-angle-up {
+                color: $black-color;
+            }
+        }
+
+        span {
+            @include crop_text;
+            
+            i {
+                color: transparentize($main-color, 0.4);
+                margin-right: 8.5px;
+            }
+        }
+
+        .fa-angle-down,
+        .fa-angle-up {
+            color: transparentize($main-color, 0.4);
+            transition: color 0.3s ease,
+        }
+    }
+
+    .options_list {
+        interpolate-size: allow-keywords;
+        position: absolute;
+        width: 100%;
+        height: 0px;
+        margin-top: 10px;
+        color: $secondary-color;
+        background-color: transparentize($main-color, 0.2);
+        border-radius: $small-border-radius;
+        overflow-y: $scrollbar;
+        transition: height 0.3s ease;
+        z-index: 500;
+
+        &::-webkit-scrollbar {
+            width: 3px;
+            background-color: $secondary-color;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background-color: $secondary-color;
+        }
+
+        &.active {
+            height: $options_list_height;
+        }
+
+        .option {
+            @include crop_text;
+            padding: 5px 15px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+
+            &:hover,
+            &:focus-visible,
+            &.selected {
+                background-color: transparentize($secondary-color, 0.9);
+                color: $secondary-color;
+            }
+
+            &:focus-visible {
+                outline: none !important;
+            }
+
+            i {
+                color: $secondary-color;
+                margin-right: 15px;
+            }
+        }
+    }
+}

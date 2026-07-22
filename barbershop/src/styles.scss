@@ -1,0 +1,16 @@
+@import "./partials/variables";
+@import "./partials/mixins";
+
+*, &::before, &::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    @include scrollbar;
+    background-color: $light-gray-color;
+    font-family: $main-font;
+    font-size: 15px;
+    overflow-x: hidden;
+}

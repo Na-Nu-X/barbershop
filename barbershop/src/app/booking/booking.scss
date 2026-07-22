@@ -1,0 +1,119 @@
+@import "../../partials/variables";
+@import "../../partials/mixins";
+
+.booking_container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex-shrink: 0;
+    max-width: 100%;
+    width: 800px;
+    margin: 0px auto 20px;
+    padding: 20px;
+    background-color: $secondary-color;
+    border-radius: $medium-border-radius;
+    box-shadow: 0 4px 6px transparentize($main-color, 0.92), 0 2px 4px transparentize($main-color, 0.95);
+
+    h2 {
+        margin-bottom: 5px;
+        text-align: center;
+        font-family: $heading-font;
+        font-size: 1.8em;
+    }
+
+    .date_input {
+        @include form_input;
+        cursor: pointer;
+
+        &::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s ease;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
+
+    .slots_grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+        gap: 10px;
+
+        .slot_button {
+            padding: 10px;
+            text-align: center;
+            background: transparent;
+            color: $black-color;
+            border: 1px solid $light-gray-color;
+            border-radius: $small-border-radius;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+
+            &.available {
+                background-color: transparent;
+                color: $green-color;
+                border: 1px solid $green-color;
+                cursor: pointer;
+                
+                &:hover, 
+                &.selected {
+                    background-color: transparentize($green-color, 0.4);
+                    color: $secondary-color;
+                    border-color: $green-color;
+                    box-shadow: 0 0 5px $secondary-color;
+                }
+
+                &:not(.selected) {
+                    &:hover {
+                        transform: translateY(-2px);
+                    }
+                }
+            }
+            
+            &.booked {
+                background-color: transparentize($red-color, 0.8);
+                color: $red-color;
+                border: 1px solid $red-color;
+                cursor: not-allowed;
+                opacity: 0.6;
+            }
+        }
+    }
+
+    .info_message {
+        text-align: center;
+        color: $gray-color;
+        padding: 30px 0px;
+    }
+
+    .customer_form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+
+        .name_container {
+            display: flex;
+            gap: 10px;
+      
+            input {
+                flex: 1;
+            }
+        }
+      
+        input[type="text"],
+        input[type="tel"] {
+            @include form_input;
+        }
+
+        .services_select_menu {
+            @include custom_select_menu($options_list_height: auto);
+        }
+
+        .confirm {
+            @include black_button($width: 100%);
+        }
+    }
+}

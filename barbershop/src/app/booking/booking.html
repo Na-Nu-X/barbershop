@@ -1,0 +1,53 @@
+<div class="booking_container">
+    <h2>Vyberte si termín</h2>
+    
+    <input 
+        class="date_input" 
+        type="date" 
+        [min]="min_date" 
+        [max]="max_date"
+        (change)="selectDate($event)"
+    >
+  
+    <div class="slots_grid">
+        <button 
+            *ngFor="let one_slot of slots_data" 
+            class="slot_button"
+            [class.available]="one_slot.is_available"
+            [class.booked]="!one_slot.is_available"
+            [class.selected]="selected_slot === one_slot.slot"
+            [disabled]="!one_slot.is_available"
+            (click)="selectSlot(one_slot.slot)"
+        >
+            {{ one_slot.slot }}
+        </button>
+    </div>
+  
+    <ng-template #no_slots>
+        <p class="info_message">Na zvolený deň nie sú voľné žiadne termíny.</p>
+    </ng-template>
+
+    <form class="customer_form" action="" *ngIf="selected_slot">
+        <div class="name_container">
+            <input type="text" name="first_name" placeholder="Meno" maxlength="20" required [(ngModel)]="customer.first_name">
+            <input type="text" name="last_name" placeholder="Priezvisko" maxlength="50" required [(ngModel)]="customer.last_name">
+        </div>
+    
+        <input type="tel" name="phone_number" placeholder="Telefón" maxlength="50" required [(ngModel)]="customer.phone_number">
+
+        <div class="services_select_menu">
+            <div class="select" tabindex="0" (click)="toggleShowServicesSelectMenu()">
+                <span #selected_service_label>{{ services[0].title }}</span>
+                <i class="fas fa-angle-down"></i>
+            </div>
+
+            <div class="options_list" [class.active]="is_services_select_menu_open" [attr.inert]="!is_services_select_menu_open ? '' : null">
+                <div class="option" [class.selected]="one_service.title === selected_service" *ngFor="let one_service of services" (click)="selectService(one_service.id, one_service.title)" tabindex="0"><i class="fa-solid fa-scissors"></i><span>{{ one_service.title }} - {{ (one_service.price / 100) | currency:'EUR':'':'1.2-2':'sk-SK' }}€</span></div> <!-- https://fontawesome.com/icons/scissors -->
+            </div>
+        </div>
+        
+        <button class="confirm" title="Rezervovať" aria-label="Rezervovať" (click)="confirmBooking()">
+            Rezervovať čas o {{ selected_slot }}
+        </button>
+    </form>
+</div>
