@@ -1,0 +1,54 @@
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# Compiled output
+barbershop/dist/
+barbershop/tmp/
+barbershop/out-tsc/
+barbershop/bazel-out/
+
+# Node
+barbershop/node_modules/
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/mcp.json
+.history/*
+
+# Miscellaneous
+barbershop/.angular/cache/
+barbershop/.sass-cache/
+/connect.lock
+barbershop/coverage/
+/libpeerconnection.log
+testem.log
+/typings
+barbershop/__screenshots__/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Django
+backend/.venv/
+backend/__pycache__/
+backend/db.sqlite3
+backend/staticfiles/
+backend/media/
+*.pyc
+
+.env
