@@ -1,6 +1,7 @@
-import { ChangeDetectorRef, Component, ElementRef, ViewChild, inject } from "@angular/core"
+import { ChangeDetectorRef, Component, effect, inject } from "@angular/core"
 import { Booking as BookingService } from "../services/booking"
 import { Toast } from "../services/toast"
+import { BookingDraft } from "../services/booking-draft"
 import { CommonModule } from "@angular/common"
 import { FormsModule } from "@angular/forms"
 import { Button } from "../shared/button/button"
@@ -23,9 +24,10 @@ export interface Customer {
 })
 export class Booking {
   private readonly ToastService = inject(Toast)
+  private readonly BookingDraftService = inject(BookingDraft)
 
   services:Service[] = [] // Stores All Available Services
-  service_id:number = 1 // Stores The Service ID
+  service_id:number|null = null // Stores The Service ID
   selected_service:string = "" // Stores The Selected Service
   is_services_select_menu_open:boolean = false // Stores The Information If The Services Select Menu Is Open
 
@@ -62,6 +64,13 @@ export class Booking {
       next:(response) => {
         if(response && response.success) {
           this.services = response.services // Sets The Services
+
+          // Defaults To The First Service Unless One Was Already Picked In The Price List
+          if(this.service_id === null && this.services.length > 0) {
+            this.service_id = this.services[0].id
+            this.selected_service = this.services[0].title
+          }
+
           this.cdr.detectChanges() // Rerenders The HTML
         }
         
@@ -85,19 +94,28 @@ export class Booking {
     return `${year}-${month}-${day}` // Returns The Formatted Date
   }
 
-  constructor(private BookingService:BookingService, private cdr:ChangeDetectorRef) { }
+  constructor(private BookingService:BookingService, private cdr:ChangeDetectorRef) {
+    // Applies A Service Picked In The Price List
+    effect(() => {
+      const picked:Service|null = this.BookingDraftService.service()
+
+      if(picked) {
+        this.service_id = picked.id
+        this.selected_service = picked.title
+        this.cdr.markForCheck()
+      }
+    })
+  }
 
   // Method For Toggle Show / Hide Services Select Menu
   toggleShowServicesSelectMenu():void {
     this.is_services_select_menu_open = !this.is_services_select_menu_open // Shows Or Hides The Services Select Menu
   }
 
-  @ViewChild("selected_service_label", { static: false }) selected_service_label!:ElementRef<HTMLSpanElement> // Gets The Selected Service Label
-
   // Method For Select The Service
   selectService(id:number, title:string):void {
     this.service_id = id // Sets The Selected Service ID
-    this.selected_service_label.nativeElement.textContent = title // Shows The Selected Service Title
+    this.selected_service = title // Shows The Selected Service Title
     this.toggleShowServicesSelectMenu() // Hides The Services Select Menu
   }
 
@@ -152,7 +170,7 @@ export class Booking {
       return
     }
 
-    if(this.selected_slot && this.selected_date !== "") {
+    if(this.selected_slot && this.selected_date !== "" && this.service_id !== null) {
       // Creates The Appointment
       this.BookingService.createAppointment(this.customer, this.service_id, this.selected_slot, this.selected_date).subscribe({
         next:(response) => {
