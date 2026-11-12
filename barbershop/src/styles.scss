@@ -1,16 +1,101 @@
+@use "sass:color";
 @use "partials/variables" as *;
 @use "partials/mixins" as *;
 
-*, &::before, &::after {
+// Runtime Tokens (For Inline Styles, Canvas And Third-Party Widgets)
+
+:root {
+    --color-bg: #{$color-bg};
+    --color-surface: #{$color-surface};
+    --color-text: #{$color-text};
+    --color-text-muted: #{$color-text-muted};
+    --color-accent: #{$color-accent};
+    --nav-height: #{$nav-height};
+
+    color-scheme: dark;
+}
+
+// Reset
+
+*,
+*::before,
+*::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(#{$nav-height} + #{$space-4});
+    -webkit-text-size-adjust: 100%;
+}
+
 body {
     @include scrollbar;
-    background-color: $light-gray-color;
-    font-family: $main-font;
-    font-size: 15px;
+    min-height: 100vh;
+    background-color: $color-bg;
+    color: $color-text;
+    font-family: $font-body;
+    font-size: $font-size-base;
+    line-height: $leading-normal;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+// Typography
+
+h1,
+h2,
+h3,
+h4 {
+    font-family: $font-display;
+    font-weight: $weight-semibold;
+    line-height: $leading-tight;
+    letter-spacing: -0.01em;
+    color: $color-text;
+    text-wrap: balance;
+}
+
+p {
+    text-wrap: pretty;
+}
+
+a {
+    color: inherit;
+}
+
+img {
+    display: block;
+    max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+::selection {
+    background-color: color.adjust($color-accent, $alpha: -0.65);
+    color: $color-text;
+}
+
+// Accessibility
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }

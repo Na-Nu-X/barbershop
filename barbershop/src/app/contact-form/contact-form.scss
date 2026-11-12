@@ -1,49 +1,43 @@
-@use "sass:color";
 @use "partials/variables" as *;
 @use "partials/mixins" as *;
 
 .contact_form {
+    @include card;
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    max-width: 800px;
-    margin: 0px auto;
-    padding: 20px;
-    background-color: $secondary-color;
-    border-radius: $medium-border-radius;
-    box-shadow: 0 4px 6px color.adjust($main-color, $alpha: -0.92), 0 2px 4px color.adjust($main-color, $alpha: -0.95);
+    gap: $space-4;
+    width: calc(100% - 2 * #{$gutter});
+    max-width: $container-narrow;
+    margin: 0 auto;
 
     h2 {
-        margin-bottom: 5px;
+        margin-bottom: $space-1;
         text-align: center;
-        font-family: $heading-font;
-        font-size: 1.8em;
+        font-size: $text-2xl;
     }
-  
+
     .name_container {
         display: flex;
-        gap: 10px;
-  
+        gap: $space-3;
+
         input {
             flex: 1;
+            min-width: 0;
         }
     }
-  
+
     input[type="text"],
     input[type="email"],
     textarea {
         @include form_input;
     }
-  
+
     textarea {
-        resize: none;
-        min-height: 100px;
+        resize: vertical;
+        min-height: 120px;
     }
 
     .send {
-        @include black_button($width: auto);
-        max-width: 100%;
-        padding: 10px 20px;
-        text-align: center;
+        @include button_primary;
     }
 }

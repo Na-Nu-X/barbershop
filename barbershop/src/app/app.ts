@@ -19,7 +19,7 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
 
   private ctx!:CanvasRenderingContext2D // Stores The Canvas Context
   private readonly CIRCLES_AMOUNT = 10 // Sets The Amount Of Circles
-  private readonly COLORS = ["#C5C8D933", "#868EA633", "#535D7333", "#212E4033", "#0F151E33"] // Stores The Colors
+  private readonly COLORS = ["#C9A35B26", "#D9B97726", "#A8A39A1F", "#76726B1F", "#3D404733"] // Stores The Colors
   private circles:Circle[] = [] // Stores All Circles
 
   private animation_frame_id!:number // Stores The Animation Frame ID

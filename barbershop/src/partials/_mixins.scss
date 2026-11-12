@@ -2,8 +2,31 @@
 @use "variables" as *;
 
 /***************
- General Mixins
+ Layout
 ***************/
+
+// Centered Page Container
+
+@mixin container($width: $container-width) {
+    width: 100%;
+    max-width: $width;
+    margin-inline: auto;
+    padding-inline: $gutter;
+}
+
+// Responsive Breakpoints (Mobile First)
+
+@mixin media_up($breakpoint) {
+    @media (min-width: $breakpoint) {
+        @content;
+    }
+}
+
+@mixin media_down($breakpoint) {
+    @media (max-width: ($breakpoint - 0.02px)) {
+        @content;
+    }
+}
 
 // Center Positioning
 
@@ -21,285 +44,19 @@
     justify-content: center;
 }
 
-@mixin loading($size: 10px) {
-    width: $size;
-    height: $size;
-    font-size: $size;
-    color: color.adjust($secondary-color, $lightness: -20%);
-    border-radius: 50%;
-    transition: opacity 1s ease, visibility 1s ease;
-    animation: preloaderSpin 1s infinite linear;
-    z-index: 3000;
+/***************
+ Typography
+***************/
 
-    &.hidden {
-        opacity: 0;
-        visibility: hidden;
-    }
+// Small Uppercase Label Above Headings
 
-    /***********
-     Key Frames
-    ***********/
-
-    @keyframes preloaderSpin {
-        0%,
-        100% {
-            box-shadow: 0 -3em 0 0.2em, 
-            2em -2em 0 0em, 3em 0 0 -1em, 
-            2em 2em 0 -1em, 0 3em 0 -1em, 
-            -2em 2em 0 -1em, -3em 0 0 -1em, 
-            -2em -2em 0 0;
-        }
-    
-        12.5% {
-            box-shadow: 0 -3em 0 0, 2em -2em 0 0.2em, 
-            3em 0 0 0, 2em 2em 0 -1em, 0 3em 0 -1em, 
-            -2em 2em 0 -1em, -3em 0 0 -1em, 
-            -2em -2em 0 -1em;
-        }
-    
-        25% {
-            box-shadow: 0 -3em 0 -0.5em, 
-            2em -2em 0 0, 3em 0 0 0.2em, 
-            2em 2em 0 0, 0 3em 0 -1em, 
-            -2em 2em 0 -1em, -3em 0 0 -1em, 
-            -2em -2em 0 -1em;
-        }
-    
-        37.5% {
-            box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em,
-            3em 0em 0 0, 2em 2em 0 0.2em, 0 3em 0 0em, 
-            -2em 2em 0 -1em, -3em 0em 0 -1em, -2em -2em 0 -1em;
-        }
-    
-        50% {
-            box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em,
-            3em 0 0 -1em, 2em 2em 0 0em, 0 3em 0 0.2em, 
-            -2em 2em 0 0, -3em 0em 0 -1em, -2em -2em 0 -1em;
-        }
-    
-        62.5% {
-            box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em,
-            3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 0, 
-            -2em 2em 0 0.2em, -3em 0 0 0, -2em -2em 0 -1em;
-        }
-    
-        75% {
-            box-shadow: 0em -3em 0 -1em, 2em -2em 0 -1em, 
-            3em 0em 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, 
-            -2em 2em 0 0, -3em 0em 0 0.2em, -2em -2em 0 0;
-        }
-        
-        87.5% {
-            box-shadow: 0em -3em 0 0, 2em -2em 0 -1em, 
-            3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, 
-            -2em 2em 0 0, -3em 0em 0 0, -2em -2em 0 0.2em;
-        }
-    }
-}
-
-// Black Button
-
-@mixin black_button($width: 200px, $border-radius: $small-border-radius) {
-    all: unset;
-    box-sizing: border-box;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: $width;
-    padding: 10px 20px;
-    font-weight: 600;
-    font-family: inherit;
-    background-color: $black-color; 
-    color: $secondary-color;
-    border: 2px solid transparent;
-    border-radius: $border-radius;
-    cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-
-    &:hover {
-        transform: translateY(-2px);
-        background-color: color.adjust($black-color, $lightness: 10%);
-        box-shadow: 0 5px 15px color.adjust($black-color, $alpha: -0.8);
-    }
-    
-    &:active {
-        transform: translateY(0);
-        box-shadow: 0 2px 5px color.adjust($black-color, $alpha: -0.8);
-    }
-    
-    &:disabled {
-        opacity: 0.6;
-        transform: none;
-        background-color: color.adjust($black-color, $alpha: -0.4);
-        box-shadow: none;
-        cursor: not-allowed;
-    }
-}
-
-// Gray Button
-
-@mixin gray_button($width: 200px, $border-radius: $small-border-radius) {
-    all: unset;
-    box-sizing: border-box;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: $width;
-    padding: 10px 20px;
-    font-weight: 600;
-    font-family: inherit;
-    background-color: transparent; 
-    color: $black-color;
-    border: 2px solid $black-color;
-    border-radius: $border-radius;
-    cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    
-    &:hover {
-        transform: translateY(-2px);
-        background-color: color.adjust($gray-color, $alpha: -0.8); 
-        box-shadow: 0 6px 15px color.adjust($black-color, $alpha: -0.9);
-    }
-    
-    &:active {
-        transform: translateY(0);
-        box-shadow: none;
-        background-color: color.adjust($gray-color, $alpha: -0.6);
-    }
-    
-    &:disabled {
-        opacity: 0.4;
-        transform: none;
-        border-color: color.adjust($black-color, $alpha: -0.6);
-        color: color.adjust($black-color, $alpha: -0.6);
-        box-shadow: none;
-        cursor: not-allowed;
-    }
-}
-
-// Tooltip
-
-@mixin tooltip($top: -5px) {
-    &::before,
-    &::after {
-        --scale: 0;
-
-        position: absolute;
-        top: $top;
-        left: 50%;
-        transform: translateX(-50%) translateY(var(--translate-y, 0)) scale(var(--scale));
-        transform-origin: bottom center;
-        pointer-events: none;
-        transition: 0.3s transform 0s;
-    }
-
-    &::before {
-        --translate-y: calc(-100% - 10px);
-
-        content: attr(data-tooltip);
-        width: max-content;
-        max-width: 250px;
-        padding: 5px;
-        text-align: left;
-        white-space: pre-line;
-        font-size: 0.8em;
-        background-color: $main-color;
-        color: $secondary-color;
-        border-color: $main-color;
-        border-radius: $small-border-radius;
-        text-shadow: 0px 0px 5px $main-color;
-    }
-
-    &::after {
-        --translate-y: calc(-1 * 10px);
-        
-        content: "";
-        border: 10px solid transparent;
-        border-top-color: $main-color;
-        transform-origin: top center;
-    }
-
-    &:hover {
-        &::before,
-        &::after {
-            --scale: 1;
-            transition: 0.3s transform 1s;
-        }
-    }
-}
-
-// Form Input
-
-@mixin form_input {
-    width: 100%;
-    padding: 10px 15px;
-    background-color: color.adjust($secondary-color, $lightness: -3%);
-    color: color.adjust($main-color, $alpha: -0.4);
-    border: 1px solid color.adjust($secondary-color, $lightness: -10%);
-    border-radius: $small-border-radius;
-    font-family: inherit;
-    outline: none;
-    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-
-    &::placeholder {
-        color: color.adjust($secondary-color, $lightness: -40%);
-    }
-
-    &:focus-visible {
-        background-color: $secondary-color;
-        border-color: $black-color;
-        box-shadow: 0 0 0 3px color.adjust($black-color, $alpha: -0.8);
-    }
-
-    &:-webkit-autofill {
-        -webkit-text-fill-color: color.adjust($main-color, $alpha: -0.4);
-        transition: width 0.3s ease, background-color 9999s ease;
-
-        &:hover,
-        &:focus {
-            -webkit-text-fill-color: color.adjust($main-color, $alpha: -0.4);
-            transition: width 0.3s ease, background-color 9999s ease;
-        }
-    }
-}
-
-// Scrollbar
-
-@mixin scrollbar($direction: "vertical") {
-    // Vertical Scrollbar
-    @if $direction == "vertical" {
-        overflow-x: hidden;
-        overflow-y: auto;
-
-        &::-webkit-scrollbar {
-            width: 5px;
-        }
-    }
-
-    // Horizontal Scrollbar
-    @else if $direction == "horizontal" {
-        overflow-x: auto;
-        overflow-y: hidden;
-
-        &::-webkit-scrollbar {
-            height: 5px;
-        }
-    }
-
-    &::-webkit-scrollbar-thumb {
-        background: color.adjust($secondary-color, $lightness: -10%);
-        border-radius: 2.5px;
-
-        &:hover {
-            background-color: color.adjust($secondary-color, $lightness: -20%);
-            cursor: pointer;
-        }
-    }
-
-    &::-webkit-scrollbar-track {
-        background: color.adjust($secondary-color, $lightness: -5%);
-        border-radius: 2.5px;
-    }
+@mixin eyebrow {
+    font-family: $font-body;
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
+    letter-spacing: $tracking-wider;
+    text-transform: uppercase;
+    color: $color-accent;
 }
 
 // Crop Text
@@ -310,12 +67,141 @@
     text-overflow: ellipsis;
 }
 
-// Focus
+/***************
+ Surfaces
+***************/
 
-@mixin focus {
+@mixin card($padding: $space-6) {
+    padding: $padding;
+    background-color: $color-surface;
+    border: 1px solid $color-border;
+    border-radius: $radius-lg;
+}
+
+/***************
+ Interaction
+***************/
+
+// Keyboard Focus Ring
+
+@mixin focus_ring($offset: 3px) {
     &:focus-visible {
-        outline: 2px solid $red-color !important;
-        outline-offset: 2px !important;
+        outline: 2px solid $color-accent;
+        outline-offset: $offset;
+    }
+}
+
+// Shared Button Base
+
+@mixin button_base($width: auto) {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    width: $width;
+    min-height: 48px;
+    padding: $space-3 $space-6;
+    font-family: $font-body;
+    font-size: $text-sm;
+    font-weight: $weight-semibold;
+    letter-spacing: $tracking-wide;
+    text-transform: uppercase;
+    text-align: center;
+    border: 1px solid transparent;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    transition:
+        background-color $duration-base $ease,
+        border-color $duration-base $ease,
+        color $duration-base $ease,
+        transform $duration-base $ease,
+        box-shadow $duration-base $ease;
+
+    @include focus_ring;
+
+    &:active {
+        transform: translateY(1px);
+    }
+
+    &:disabled {
+        opacity: 0.45;
+        transform: none;
+        box-shadow: none;
+        cursor: not-allowed;
+    }
+}
+
+// Primary Button (Filled Brass)
+
+@mixin button_primary($width: auto) {
+    @include button_base($width);
+    background-color: $color-accent;
+    color: $color-on-accent;
+
+    &:hover:not(:disabled) {
+        background-color: $color-accent-hover;
+        box-shadow: 0 8px 24px color.adjust($color-accent, $alpha: -0.75);
+    }
+
+    &:active:not(:disabled) {
+        background-color: $color-accent-active;
+    }
+}
+
+// Secondary Button (Outlined)
+
+@mixin button_secondary($width: auto) {
+    @include button_base($width);
+    background-color: transparent;
+    color: $color-text;
+    border-color: $color-border-strong;
+
+    &:hover:not(:disabled) {
+        border-color: $color-accent;
+        color: $color-accent;
+    }
+}
+
+/***************
+ Forms
+***************/
+
+@mixin form_input {
+    width: 100%;
+    min-height: 48px;
+    padding: $space-3 $space-4;
+    background-color: $color-surface-raised;
+    color: $color-text;
+    border: 1px solid $color-border-strong;
+    border-radius: $radius-sm;
+    font-family: inherit;
+    font-size: $text-md;
+    outline: none;
+    color-scheme: dark;
+    transition:
+        border-color $duration-fast $ease,
+        box-shadow $duration-fast $ease;
+
+    &::placeholder {
+        color: $color-text-subtle;
+    }
+
+    &:hover {
+        border-color: color.adjust($color-border-strong, $lightness: 10%);
+    }
+
+    &:focus-visible {
+        border-color: $color-accent;
+        box-shadow: 0 0 0 3px color.adjust($color-accent, $alpha: -0.8);
+    }
+
+    &:-webkit-autofill,
+    &:-webkit-autofill:hover,
+    &:-webkit-autofill:focus {
+        -webkit-text-fill-color: $color-text;
+        transition: background-color 9999s ease;
     }
 }
 
@@ -323,7 +209,6 @@
 
 @mixin custom_select_menu($options_list_height: 150px, $scrollbar: hidden) {
     position: relative;
-    max-width: 100%;
     width: 100%;
     cursor: pointer;
 
@@ -332,39 +217,29 @@
         align-items: center;
         justify-content: space-between;
         width: 100%;
-        height: 40px;
-        padding: 0px 15px;
-        color: color.adjust($main-color, $alpha: -0.4);
-        background-color: color.adjust($secondary-color, $lightness: -3%);
-        border: 1px solid color.adjust($secondary-color, $lightness: -10%);
-        border-radius: $small-border-radius;
-        transition: border 0.3s ease, box-shadow 0.3s ease;
+        min-height: 48px;
+        padding: 0 $space-4;
+        color: $color-text;
+        background-color: $color-surface-raised;
+        border: 1px solid $color-border-strong;
+        border-radius: $radius-sm;
+        transition:
+            border-color $duration-fast $ease,
+            box-shadow $duration-fast $ease;
 
         &:hover,
         &:focus-visible {
-            background-color: $secondary-color;
-            border-color: $black-color;
-            box-shadow: 0 0 0 3px color.adjust($black-color, $alpha: -0.8);
-
-            .fa-angle-down,
-            .fa-angle-up {
-                color: $black-color;
-            }
+            outline: none;
+            border-color: $color-accent;
+            box-shadow: 0 0 0 3px color.adjust($color-accent, $alpha: -0.8);
         }
 
         span {
             @include crop_text;
-            
-            i {
-                color: color.adjust($main-color, $alpha: -0.4);
-                margin-right: 8.5px;
-            }
         }
 
-        .fa-angle-down,
-        .fa-angle-up {
-            color: color.adjust($main-color, $alpha: -0.4);
-            transition: color 0.3s ease,
+        i {
+            color: $color-text-muted;
         }
     }
 
@@ -372,48 +247,134 @@
         interpolate-size: allow-keywords;
         position: absolute;
         width: 100%;
-        height: 0px;
-        margin-top: 10px;
-        color: $secondary-color;
-        background-color: color.adjust($main-color, $alpha: -0.2);
-        border-radius: $small-border-radius;
+        height: 0;
+        margin-top: $space-2;
+        color: $color-text;
+        background-color: $color-surface-raised;
+        border-radius: $radius-sm;
+        box-shadow: $shadow-md;
         overflow-y: $scrollbar;
-        transition: height 0.3s ease;
-        z-index: 500;
-
-        &::-webkit-scrollbar {
-            width: 3px;
-            background-color: $secondary-color;
-        }
-
-        &::-webkit-scrollbar-thumb {
-            background-color: $secondary-color;
-        }
+        transition: height $duration-base $ease;
+        z-index: $z-dropdown;
 
         &.active {
             height: $options_list_height;
+            border: 1px solid $color-border-strong;
         }
 
         .option {
             @include crop_text;
-            padding: 5px 15px;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            padding: $space-3 $space-4;
+            transition:
+                background-color $duration-fast $ease,
+                color $duration-fast $ease;
 
             &:hover,
             &:focus-visible,
             &.selected {
-                background-color: color.adjust($secondary-color, $alpha: -0.9);
-                color: $secondary-color;
-            }
-
-            &:focus-visible {
-                outline: none !important;
+                outline: none;
+                background-color: color.adjust($color-accent, $alpha: -0.88);
+                color: $color-accent;
             }
 
             i {
-                color: $secondary-color;
-                margin-right: 15px;
+                margin-right: $space-3;
+                color: $color-accent;
             }
+        }
+    }
+}
+
+/***************
+ Misc
+***************/
+
+// Scrollbar
+
+@mixin scrollbar($direction: "vertical") {
+    @if $direction == "vertical" {
+        overflow-x: hidden;
+        overflow-y: auto;
+
+        &::-webkit-scrollbar {
+            width: 8px;
+        }
+    }
+
+    @else if $direction == "horizontal" {
+        overflow-x: auto;
+        overflow-y: hidden;
+
+        &::-webkit-scrollbar {
+            height: 8px;
+        }
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: $color-border-strong;
+        border-radius: $radius-pill;
+
+        &:hover {
+            background-color: $color-text-subtle;
+        }
+    }
+
+    &::-webkit-scrollbar-track {
+        background: $color-bg;
+    }
+}
+
+// Spinner Preloader (https://cssloaders.github.io/)
+
+@mixin loading($size: 10px) {
+    width: $size;
+    height: $size;
+    font-size: $size;
+    color: $color-accent;
+    border-radius: 50%;
+    transition:
+        opacity 1s ease,
+        visibility 1s ease;
+    animation: preloaderSpin 1s infinite linear;
+    z-index: $z-toast;
+
+    &.hidden {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    @keyframes preloaderSpin {
+        0%,
+        100% {
+            box-shadow: 0 -3em 0 0.2em, 2em -2em 0 0em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 0;
+        }
+
+        12.5% {
+            box-shadow: 0 -3em 0 0, 2em -2em 0 0.2em, 3em 0 0 0, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 -1em;
+        }
+
+        25% {
+            box-shadow: 0 -3em 0 -0.5em, 2em -2em 0 0, 3em 0 0 0.2em, 2em 2em 0 0, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 -1em;
+        }
+
+        37.5% {
+            box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0em 0 0, 2em 2em 0 0.2em, 0 3em 0 0em, -2em 2em 0 -1em, -3em 0em 0 -1em, -2em -2em 0 -1em;
+        }
+
+        50% {
+            box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 0em, 0 3em 0 0.2em, -2em 2em 0 0, -3em 0em 0 -1em, -2em -2em 0 -1em;
+        }
+
+        62.5% {
+            box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 0, -2em 2em 0 0.2em, -3em 0 0 0, -2em -2em 0 -1em;
+        }
+
+        75% {
+            box-shadow: 0em -3em 0 -1em, 2em -2em 0 -1em, 3em 0em 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 0, -3em 0em 0 0.2em, -2em -2em 0 0;
+        }
+
+        87.5% {
+            box-shadow: 0em -3em 0 0, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 0, -3em 0em 0 0, -2em -2em 0 0.2em;
         }
     }
 }

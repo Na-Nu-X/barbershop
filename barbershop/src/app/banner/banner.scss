@@ -6,69 +6,68 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 20px;
-    max-width: $main-width;
+    gap: $space-5;
+    max-width: $container-width;
     width: 100%;
-    min-height: calc(100vh - 45px - 20px);
-    margin: 0px auto;
-    padding: 100px 20px 40px; 
-    color: $main-color;
+    min-height: 100svh;
+    margin: 0 auto;
+    padding: calc(#{$nav-height} + #{$space-7}) $gutter $space-7;
 
     h1 {
-        line-height: 1;
-        font-family: $heading-font;
-        font-size: clamp(2.5em, 5vw, 4em);
+        font-size: $text-display;
     }
 
     > p:first-of-type {
         max-width: 600px;
-        font-size: 1.2em;
-        color: color.adjust($main-color, $alpha: -0.4);
+        font-size: $text-lg;
+        color: $color-text-muted;
     }
 
     .buttons {
         display: flex;
-        gap: 15px;
+        gap: $space-4;
         flex-wrap: wrap;
 
         .book {
-            @include black_button;
+            @include button_primary;
         }
 
         .order {
-            @include gray_button;
+            @include button_secondary;
         }
     }
 
     .status {
         display: inline-flex;
         align-items: center;
-        gap: 10px;
-        margin-top: 10px;
-        color: $green-color;
-        font-weight: bold;
+        gap: $space-3;
+        margin-top: $space-3;
+        color: $color-success;
+        font-weight: $weight-semibold;
 
         &::before {
             content: "";
             display: block;
             width: 10px;
             height: 10px;
-            background-color: $green-color;
+            background-color: $color-success;
             border-radius: 50%;
-            box-shadow: 0 0 5px $green-color;
+            box-shadow: 0 0 8px $color-success;
         }
 
         &.closed {
-            color: $red-color;
+            color: $color-danger;
 
             &::before {
-                background-color: $red-color;
-                box-shadow: 0 0 5px $red-color;
+                background-color: $color-danger;
+                box-shadow: 0 0 8px $color-danger;
             }
         }
 
         span {
-            font-size: 12px;
+            font-size: $text-xs;
+            font-weight: $weight-regular;
+            color: $color-text-muted;
         }
     }
 }

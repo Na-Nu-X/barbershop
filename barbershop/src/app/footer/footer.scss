@@ -1,5 +1,5 @@
-@use "sass:color";
 @use "partials/variables" as *;
+@use "partials/mixins" as *;
 
 footer {
     position: relative;
@@ -7,97 +7,93 @@ footer {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 20px;
-    min-height: 100vh;
-    margin-top: 20px;
+    gap: $space-5;
+    margin-top: $space-8;
+    padding: $space-9 $gutter $space-6;
     text-align: center;
-    background: radial-gradient(circle, color.adjust($main-color, $lightness: 10%) 0%, $main-color 100%);
-    z-index: 2000;
+    background-color: $color-surface;
+    border-top: 1px solid $color-border;
 
     h2 {
-        color: $secondary-color;
-        font-family: $heading-font;
-        font-size: clamp(2.5em, 5vw, 4em);
+        font-size: $text-3xl;
     }
 
-    .address {
-        p {
-            color: color.adjust($secondary-color, $lightness: -40%);
+    .address p {
+        color: $color-text-muted;
+    }
+
+    .contact_us p {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: $space-3;
+
+        i {
+            color: $color-accent;
         }
-    }
 
-    .contact_us {
-        p {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            color: $secondary-color;
+        a {
+            color: $color-text-muted;
+            text-decoration: none;
+            transition: color $duration-fast $ease;
 
-            i {
-                font-size: 1em;
-            }
-
-            a {
-                text-decoration: none;
-                color: color.adjust($secondary-color, $lightness: -40%);
-
-                font: {
-                    size: 0.9em;
-                    style: italic;
-                }
-
-                &:hover,
-                &:active {
-                    text-decoration: underline;
-                    cursor: pointer;
-                }
+            &:hover {
+                color: $color-text;
             }
         }
     }
 
     .social_media {
+        display: flex;
+        gap: $space-3;
+
         a {
-            display: inline-block;
-            margin: 0px 5px;
-            color: $secondary-color;
-            transition: transform 0.3s ease;
+            @include flex_center;
+            @include focus_ring;
+            width: 44px;
+            height: 44px;
+            color: $color-text;
+            border: 1px solid $color-border-strong;
+            border-radius: 50%;
+            transition:
+                color $duration-fast $ease,
+                border-color $duration-fast $ease;
 
             &:hover {
-                transform: scale(1.1);
-                cursor: pointer;
+                color: $color-accent;
+                border-color: $color-accent;
             }
 
             i {
-                font-size: 2em;
+                font-size: $text-lg;
             }
         }
     }
 
-    .payment_methods {
-        .icons {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            height: 32px;
-            
-            img {
-                opacity: 0.8;
-            }
+    .payment_methods .icons {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: $space-3;
+        height: 32px;
+
+        img {
+            height: 100%;
+            width: auto;
+            opacity: 0.7;
         }
     }
 
     .other {
-        color: color.adjust($secondary-color, $lightness: -40%);
+        width: 100%;
+        max-width: $container-width;
+        padding-top: $space-5;
+        border-top: 1px solid $color-border;
 
         .copywrite {
-            color: color.adjust($secondary-color, $lightness: -40%);
-
-            font: {
-                family: $copywrite-font;
-                size: 0.8em;
-            }
+            font-size: $text-xs;
+            color: $color-text-subtle;
         }
     }
 }

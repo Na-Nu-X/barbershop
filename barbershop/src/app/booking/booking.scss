@@ -3,23 +3,18 @@
 @use "partials/mixins" as *;
 
 .booking_container {
+    @include card;
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    flex-shrink: 0;
-    max-width: 100%;
-    width: 800px;
-    margin: 0px auto 20px;
-    padding: 20px;
-    background-color: $secondary-color;
-    border-radius: $medium-border-radius;
-    box-shadow: 0 4px 6px color.adjust($main-color, $alpha: -0.92), 0 2px 4px color.adjust($main-color, $alpha: -0.95);
+    gap: $space-4;
+    width: calc(100% - 2 * #{$gutter});
+    max-width: $container-narrow;
+    margin: 0 auto $space-6;
 
     h2 {
-        margin-bottom: 5px;
+        margin-bottom: $space-1;
         text-align: center;
-        font-family: $heading-font;
-        font-size: 1.8em;
+        font-size: $text-2xl;
     }
 
     .date_input {
@@ -29,7 +24,7 @@
         &::-webkit-calendar-picker-indicator {
             cursor: pointer;
             opacity: 0.6;
-            transition: opacity 0.2s ease;
+            transition: opacity $duration-fast $ease;
 
             &:hover {
                 opacity: 1;
@@ -39,71 +34,67 @@
 
     .slots_grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-        gap: 10px;
+        grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+        gap: $space-2;
 
         .slot_button {
-            padding: 10px;
+            @include focus_ring(2px);
+            min-height: 44px;
+            padding: $space-2;
             text-align: center;
             background: transparent;
-            color: $black-color;
-            border: 1px solid $light-gray-color;
-            border-radius: $small-border-radius;
-            font-weight: 500;
+            color: $color-text;
+            border: 1px solid $color-border-strong;
+            border-radius: $radius-sm;
+            font-weight: $weight-medium;
+            font-variant-numeric: tabular-nums;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition:
+                background-color $duration-fast $ease,
+                border-color $duration-fast $ease,
+                color $duration-fast $ease;
 
-            &.available {
-                background-color: transparent;
-                color: $green-color;
-                border: 1px solid $green-color;
-                cursor: pointer;
-                
-                &:hover, 
-                &.selected {
-                    background-color: color.adjust($green-color, $alpha: -0.4);
-                    color: $secondary-color;
-                    border-color: $green-color;
-                    box-shadow: 0 0 5px $secondary-color;
-                }
-
-                &:not(.selected) {
-                    &:hover {
-                        transform: translateY(-2px);
-                    }
-                }
+            &.available:hover {
+                border-color: $color-accent;
+                color: $color-accent;
             }
-            
+
+            &.available.selected {
+                background-color: $color-accent;
+                border-color: $color-accent;
+                color: $color-on-accent;
+            }
+
             &.booked {
-                background-color: color.adjust($red-color, $alpha: -0.8);
-                color: $red-color;
-                border: 1px solid $red-color;
+                color: $color-text-subtle;
+                border-color: $color-border;
+                text-decoration: line-through;
                 cursor: not-allowed;
-                opacity: 0.6;
             }
         }
     }
 
     .info_message {
+        padding: $space-6 0;
         text-align: center;
-        color: $gray-color;
-        padding: 30px 0px;
+        color: $color-text-muted;
     }
 
     .customer_form {
         display: flex;
         flex-direction: column;
-        gap: 15px;
+        gap: $space-4;
 
         .name_container {
             display: flex;
-            gap: 10px;
-      
+            gap: $space-3;
+
             input {
                 flex: 1;
+                min-width: 0;
             }
         }
-      
+
         input[type="text"],
         input[type="tel"] {
             @include form_input;
@@ -114,7 +105,7 @@
         }
 
         .confirm {
-            @include black_button($width: 100%);
+            @include button_primary($width: 100%);
         }
     }
 }
