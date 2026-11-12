@@ -28,6 +28,7 @@ export class NavigationBar {
   protected readonly is_scrolled = signal<boolean>(false) // Stores The Information If The Page Is Scrolled
 
   protected readonly links:NavigationLink[] = [
+    { label: "Služby", section: "services" },
     { label: "Rezervácia", section: "booking" },
     { label: "Barberi", section: "barbers" },
     { label: "Kontakt", section: "contact" }
