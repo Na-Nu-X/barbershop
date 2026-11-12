@@ -51,12 +51,17 @@ export class Banner {
   }
 }
 
+// Function For Format When The Shop Opens Next ("otvárame o 09:00" Today, "otvárame zajtra o 09:00" Otherwise)
+export function formatNextOpening(time:string, day_label:string|null):string {
+  return day_label && day_label !== "dnes" ? `otvárame ${day_label} o ${time}` : `otvárame o ${time}`
+}
+
 // Function For Turn The API Response Into Pill Text
 function toStatusView(response:StatusResponse):StatusView {
   let detail:string|null = null
 
   if(response.is_open && response.open_till) detail = `do ${response.open_till}`
-  else if(!response.is_open && response.next_open) detail = `otvárame o ${response.next_open}`
+  else if(!response.is_open && response.next_open) detail = formatNextOpening(response.next_open, response.next_open_day ?? null)
   else if(!response.is_open && response.reason) detail = response.reason
 
   return {

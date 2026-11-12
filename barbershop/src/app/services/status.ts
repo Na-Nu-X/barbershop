@@ -10,7 +10,8 @@ export interface StatusResponse {
     status?:string,
     reason?:string,
     open_till?:string,
-    next_open?:string
+    next_open?:string|null,
+    next_open_day?:string|null // "dnes", "zajtra" Or e.g. "v pondelok"
 }
 
 @Injectable({
