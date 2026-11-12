@@ -18,6 +18,7 @@ export interface PaymentMethod {
 
 export interface SiteConfig {
   name:string,
+  logo:string|null, // Path Inside `public/` (e.g. "images/logo.svg"), Null Shows A Text Wordmark Instead
   tagline:string,
   description:string, // Used For The Meta Description And Social Previews
   language:string,
@@ -42,6 +43,7 @@ export interface SiteConfig {
 
 export const SITE_CONFIG:SiteConfig = {
   name: "Barbershop",
+  logo: null,
   tagline: "Precízny strih. Poctivé remeslo.",
   description: "Pánske kaderníctvo a barbershop v Bratislave. Strihy, úprava brady a holenie – rezervujte si termín online.",
   language: "sk",

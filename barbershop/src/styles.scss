@@ -45,6 +45,11 @@ body {
     text-rendering: optimizeLegibility;
 }
 
+// Prevents The Page From Scrolling Behind Full-Screen Overlays (Mobile Menu)
+body.scroll_locked {
+    overflow: hidden;
+}
+
 // Typography
 
 h1,
