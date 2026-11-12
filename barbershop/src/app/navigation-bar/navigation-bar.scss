@@ -1,110 +1,281 @@
-@import "../../partials/variables";
-@import "../../partials/mixins";
+@use "sass:color";
+@use "partials/variables" as *;
+@use "partials/mixins" as *;
 
-.navigation_bar {
+.site_header {
     position: fixed;
-    top: 10px;
-    left: 10px;
-    right: 10px;
-    background-color: transparentize($black-color, 0.8);
-    backdrop-filter: blur(5px);
-    border: 1px solid transparentize($black-color, 0.6);
-    border-radius: $small-border-radius;
-    box-shadow: 0px 2px 10px transparentize($main-color, 0.95);
-    z-index: 1000;
+    inset: 0 0 auto 0;
+    z-index: $z-nav;
 
-    .navigation_container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        max-width: $main-width;
-        margin: 0px auto;
-        padding: 0px 5px;
+    // Transparent Over The Hero, Solid Once The Page Is Scrolled
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-color: color.adjust($color-bg, $alpha: -0.15);
+        backdrop-filter: blur(14px);
+        border-bottom: 1px solid $color-border;
+        opacity: 0;
+        transition: opacity $duration-base $ease;
+        pointer-events: none;
     }
 
-    .hamburger {
-        all: unset;
-        display: none;
-        height: 60px;
-        font-size: 2em;
-        color: darken($secondary-color, 10%);
-        cursor: pointer;
+    &.scrolled::before {
+        opacity: 1;
+    }
+}
+
+.bar {
+    @include container;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: $space-6;
+    height: $nav-height;
+}
+
+// Brand
+
+.brand {
+    @include focus_ring(4px);
+    display: inline-flex;
+    align-items: center;
+    gap: $space-3;
+    margin-right: auto;
+    color: $color-text;
+    text-decoration: none;
+    border-radius: $radius-sm;
+
+    .brand_logo {
+        height: 40px;
+        width: auto;
     }
 
-    ul {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        height: 60px;
-        margin: 0px;
-        padding: 0px;
+    .brand_mark {
+        @include flex_center;
+        width: 38px;
+        height: 38px;
+        color: $color-accent;
+        border: 1px solid color.adjust($color-accent, $alpha: -0.5);
+        border-radius: 50%;
+        font-size: $text-sm;
+        transition: border-color $duration-base $ease, transform $duration-slow $ease;
+    }
 
-        li {
-            list-style-type: none;
+    .brand_name {
+        font-family: $font-display;
+        font-size: $text-xl;
+        font-weight: $weight-semibold;
+        letter-spacing: 0.01em;
+    }
 
-            a {
-                display: block;
-                padding: 10px 15px;
-                color: darken($secondary-color, 10%);
-                text-decoration: none;
-                text-transform: uppercase;
-                font-weight: bold;
-                border-bottom: 2px solid transparent; 
-                transition: transform 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    &:hover .brand_mark {
+        border-color: $color-accent;
+        transform: rotate(-20deg);
+    }
+}
 
-                &:hover,
-                &:active {
-                    transform: translateY(-2px);
-                    color: $secondary-color;
-                    border-bottom-color: $secondary-color;
-                }
+// Desktop Navigation
+
+.desktop_nav ul {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    list-style: none;
+
+    a {
+        @include focus_ring(2px);
+        position: relative;
+        display: block;
+        padding: $space-2 $space-3;
+        color: $color-text-muted;
+        font-size: $text-sm;
+        font-weight: $weight-medium;
+        letter-spacing: $tracking-wide;
+        text-transform: uppercase;
+        text-decoration: none;
+        border-radius: $radius-sm;
+        transition: color $duration-fast $ease;
+
+        // Brass Underline Grows From The Center On Hover
+        &::after {
+            content: "";
+            position: absolute;
+            left: $space-3;
+            right: $space-3;
+            bottom: 2px;
+            height: 1px;
+            background-color: $color-accent;
+            transform: scaleX(0);
+            transition: transform $duration-base $ease;
+        }
+
+        &:hover {
+            color: $color-text;
+
+            &::after {
+                transform: scaleX(1);
             }
         }
     }
 }
 
-@media (max-width: 600px) {
-    .navigation_bar {
-        .navigation_container {
-            flex-direction: column;
-            align-items: flex-start;
-            padding: 0px;
+// Mobile Menu Toggle (Two Lines That Morph Into An X)
+
+.menu_toggle {
+    all: unset;
+    @include focus_ring;
+    position: relative;
+    display: none;
+    width: 44px;
+    height: 44px;
+    margin-right: -10px;
+    border-radius: $radius-sm;
+    cursor: pointer;
+
+    span {
+        position: absolute;
+        left: 11px;
+        right: 11px;
+        height: 1.5px;
+        background-color: $color-text;
+        border-radius: $radius-pill;
+        transition: transform $duration-base $ease, top $duration-base $ease;
+
+        &:nth-child(1) {
+            top: 17px;
         }
 
-        .hamburger {
+        &:nth-child(2) {
+            top: 25px;
+        }
+    }
+
+    &.open span {
+        top: 21px;
+
+        &:nth-child(1) {
+            transform: rotate(45deg);
+        }
+
+        &:nth-child(2) {
+            transform: rotate(-45deg);
+        }
+    }
+}
+
+// Mobile Menu Panel
+
+.mobile_menu {
+    position: fixed;
+    inset: $nav-height 0 0 0;
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: $space-7;
+    padding: $space-7 $gutter calc(#{$space-6} + env(safe-area-inset-bottom));
+    background-color: $color-bg;
+    border-top: 1px solid $color-border;
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition:
+        opacity $duration-base $ease,
+        transform $duration-base $ease,
+        visibility 0s linear $duration-base;
+
+    &.open {
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        transition:
+            opacity $duration-base $ease,
+            transform $duration-base $ease;
+
+        li {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    ul {
+        list-style: none;
+    }
+
+    li {
+        border-bottom: 1px solid $color-border;
+        opacity: 0;
+        transform: translateY(8px);
+        transition:
+            opacity $duration-slow $ease,
+            transform $duration-slow $ease;
+        transition-delay: calc(var(--index, 0) * 60ms + 80ms);
+
+        a {
+            @include focus_ring(-2px);
             display: flex;
             align-items: center;
-            width: 100%;
-            padding-left: 20px;
-        }
+            justify-content: space-between;
+            padding: $space-5 0;
+            color: $color-text;
+            font-family: $font-display;
+            font-size: $text-2xl;
+            text-decoration: none;
 
-        ul {
-            display: none;
-            flex-direction: column;
-            gap: 0px;
-            width: 100%;
-            height: auto;
-            background-color: transparentize($black-color, 0.8);
-            border-top: 1px solid transparentize($black-color, 0.8);
-
-            &.open {
-                display: flex; 
+            &::after {
+                content: "→";
+                font-family: $font-body;
+                font-size: $text-lg;
+                color: $color-accent;
+                transition: transform $duration-base $ease;
             }
 
-            li {
-                width: 100%;
-                text-align: center;
-
-                a {
-                    padding: 15px 0px;
-                    border-bottom: none;
-                    
-                    &:hover {
-                        background-color: transparentize($black-color, 0.9);
-                        transform: translateY(0);
-                    }
-                }
+            &:hover::after {
+                transform: translateX(4px);
             }
         }
+    }
+
+    .mobile_footer {
+        display: flex;
+        flex-direction: column;
+        gap: $space-5;
+    }
+
+    .mobile_contact {
+        display: flex;
+        flex-direction: column;
+        gap: $space-2;
+        color: $color-text-muted;
+        font-size: $text-sm;
+
+        a {
+            color: $color-text;
+            text-decoration: none;
+        }
+
+        i {
+            width: 1.25em;
+            margin-right: $space-2;
+            color: $color-accent;
+        }
+    }
+}
+
+// Breakpoint Switch
+
+@include media_down($bp-md) {
+    .desktop_nav,
+    .desktop_cta {
+        display: none;
+    }
+
+    .menu_toggle {
+        display: block;
+    }
+
+    .mobile_menu {
+        display: flex;
     }
 }

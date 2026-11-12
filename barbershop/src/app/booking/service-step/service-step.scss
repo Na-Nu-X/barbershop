@@ -1,0 +1,104 @@
+@use "sass:color";
+@use "partials/variables" as *;
+@use "partials/mixins" as *;
+@use "../booking-shared" as *;
+
+:host {
+    display: block;
+}
+
+@include step_common;
+
+.service_options {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    border: 0;
+}
+
+.service_option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: $space-4;
+    min-height: 64px;
+    padding: $space-3 $space-4;
+    background-color: $color-surface-raised;
+    border: 1px solid $color-border;
+    border-radius: $radius-md;
+    cursor: pointer;
+    transition:
+        border-color $duration-fast $ease,
+        background-color $duration-fast $ease;
+
+    &:hover {
+        border-color: $color-border-strong;
+    }
+
+    // The Real Radio Stays Focusable But Invisible; .radio Draws It
+    input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    &:has(input:focus-visible) {
+        outline: 2px solid $color-accent;
+        outline-offset: 2px;
+    }
+
+    .radio {
+        flex-shrink: 0;
+        width: 20px;
+        height: 20px;
+        border: 1.5px solid $color-border-strong;
+        border-radius: 50%;
+        transition:
+            border-color $duration-fast $ease,
+            box-shadow $duration-fast $ease;
+    }
+
+    .info {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .title {
+        font-weight: $weight-medium;
+    }
+
+    .duration {
+        font-size: $text-sm;
+        color: $color-text-subtle;
+
+        i {
+            margin-right: $space-1;
+        }
+    }
+
+    .price {
+        font-family: $font-display;
+        font-size: $text-lg;
+        font-weight: $weight-semibold;
+        font-variant-numeric: lining-nums tabular-nums;
+        color: $color-accent;
+        white-space: nowrap;
+    }
+
+    &.selected {
+        background-color: color.adjust($color-accent, $alpha: -0.92);
+        border-color: $color-accent;
+
+        .radio {
+            border-color: $color-accent;
+            box-shadow: inset 0 0 0 4px $color-surface-raised, inset 0 0 0 10px $color-accent;
+        }
+    }
+
+    &.skeleton {
+        @include skeleton_block;
+        cursor: default;
+    }
+}

@@ -1,0 +1,54 @@
+@if (store.service(); as service) {
+    @if (store.date(); as date) {
+        @if (store.time(); as time) {
+            <app-booking-summary [service]="service" [date]="date" [time]="time" />
+        }
+    }
+}
+
+<form class="details_form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="name_row">
+        <div class="field">
+            <label class="field_label" for="booking_first_name">Meno</label>
+            <input id="booking_first_name" type="text" formControlName="first_name" autocomplete="given-name" maxlength="20"
+                [attr.aria-invalid]="error('first_name') ? true : null" [attr.aria-describedby]="error('first_name') ? 'booking_first_name_error' : null">
+            @if (error("first_name"); as message) {
+                <p class="field_error" id="booking_first_name_error">{{ message }}</p>
+            }
+        </div>
+
+        <div class="field">
+            <label class="field_label" for="booking_last_name">Priezvisko</label>
+            <input id="booking_last_name" type="text" formControlName="last_name" autocomplete="family-name" maxlength="50"
+                [attr.aria-invalid]="error('last_name') ? true : null" [attr.aria-describedby]="error('last_name') ? 'booking_last_name_error' : null">
+            @if (error("last_name"); as message) {
+                <p class="field_error" id="booking_last_name_error">{{ message }}</p>
+            }
+        </div>
+    </div>
+
+    <div class="field">
+        <label class="field_label" for="booking_phone">Telefón</label>
+        <input id="booking_phone" type="tel" formControlName="phone_number" autocomplete="tel" inputmode="tel" maxlength="20" placeholder="+421 900 123 456"
+            [attr.aria-invalid]="error('phone_number') ? true : null" [attr.aria-describedby]="error('phone_number') ? 'booking_phone_error' : 'booking_phone_hint'">
+        @if (error("phone_number"); as message) {
+            <p class="field_error" id="booking_phone_error">{{ message }}</p>
+        } @else {
+            <p class="field_hint" id="booking_phone_hint">Ozveme sa len v prípade zmeny termínu.</p>
+        }
+    </div>
+
+    <div class="step_actions">
+        <button appButton variant="secondary" type="button" (click)="store.goTo(2)">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Späť
+        </button>
+
+        <button appButton type="submit" class="confirm" [disabled]="store.is_submitting()">
+            @if (store.is_submitting()) {
+                <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Odosielam…
+            } @else {
+                Potvrdiť rezerváciu
+            }
+        </button>
+    </div>
+</form>

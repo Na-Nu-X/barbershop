@@ -1,25 +1,28 @@
-import { Injectable } from "@angular/core"
+import { Injectable, inject } from "@angular/core"
 import { HttpClient } from "@angular/common/http"
 import { Observable } from "rxjs"
+import { apiUrl } from "../config/api"
 
-import type { ContactMessage } from "../contact-form/contact-form"
+export interface ContactMessage {
+  first_name:string,
+  last_name:string,
+  email_address:string,
+  message:string
+}
+
+export interface ContactResponse {
+  success:boolean,
+  message:string
+}
 
 @Injectable({
   providedIn: "root"
 })
 export class Message {
-    private api_url:string = "http://127.0.0.1:8001/api/contact/" // Connection To The Back-End API
+  private readonly http = inject(HttpClient)
 
-    constructor(private http: HttpClient) { }
-
-    // Method For Send The Message
-    sendMessage(contact_form:ContactMessage):Observable<{ 
-      success:string,
-      message:string
-    }> {
-      return this.http.post<{ 
-        success:string,
-        message:string
-      }>(this.api_url, contact_form) // Returns The Data
-    }
+  // Method For Send The Contact Form
+  sendMessage(contact_message:ContactMessage):Observable<ContactResponse> {
+    return this.http.post<ContactResponse>(apiUrl("contact/"), contact_message)
+  }
 }

@@ -1,61 +1,72 @@
-import { Component } from "@angular/core"
-import { Status } from "../services/status"
-import { CommonModule } from "@angular/common"
+import { Component, afterNextRender, inject, signal } from "@angular/core"
+import { Status, StatusResponse } from "../services/status"
+import { Scroll } from "../services/scroll"
+import { Button } from "../shared/button/button"
+import { SITE_CONFIG } from "../config/site.config"
+
+// What The Open / Closed Pill Shows
+interface StatusView {
+  is_open:boolean,
+  label:string, // e.g. "Otvorené"
+  detail:string|null // e.g. "do 18:00"
+}
 
 @Component({
   selector: "app-banner",
-  imports: [CommonModule],
+  imports: [Button],
   templateUrl: "./banner.html",
   styleUrl: "./banner.scss",
 })
-
 export class Banner {
-  is_open:boolean = true // Stores The Information If Is Open
-  status:string = "" // Stores The Status
-  reason:string = "" // Stores The Status Reason
-  open_till:string = "" // Stores The Open Till Time
-  next_open:string = "" // Stores The Next Open Time
+  private readonly StatusService = inject(Status)
+  protected readonly ScrollService = inject(Scroll)
 
-  // Method Which Executes In Beginning
-  ngOnInit():void {
-    // Gets The Current Status
+  protected readonly site = SITE_CONFIG // Business Details
+  protected readonly hero = SITE_CONFIG.hero // Hero Copy And Image
+
+  protected readonly status = signal<StatusView|null>(null) // Null Until The Live Status Is Loaded
+
+  constructor() {
+    // The Status Changes Over Time, So It Is Only Fetched In The Browser (Never Baked Into The Prerendered Page)
+    afterNextRender(() => this.loadStatus())
+  }
+
+  // Method For Load The Current Open / Closed Status
+  private loadStatus():void {
     this.StatusService.getStatus().subscribe({
       next:(response) => {
-        if(response && response.success && response.status) {
-          this.is_open = response.is_open || false // Sets The Information If Is Open
-          this.status = response.status // Sets The Status
-          if(response.reason) this.reason = response.reason // Sets The Status Reason
-          if(response.open_till) this.open_till = response.open_till // Sets The Open Till Time
-          if(response.next_open) this.next_open = response.next_open // Sets The Status Next Open Time
+        if(response.success && response.status) {
+          this.status.set(toStatusView(response))
         }
-        
+
         else {
           console.error(response.message) // Shows The Error Message
         }
       },
 
       error:(error) => {
-        console.error(error) // Shows The Error
+        console.error(error) // The Pill Simply Stays Hidden When The Status Is Unavailable
       }
     })
   }
+}
 
-  constructor(private StatusService:Status) { }
+// Function For Format When The Shop Opens Next ("otvárame o 09:00" Today, "otvárame zajtra o 09:00" Otherwise)
+export function formatNextOpening(time:string, day_label:string|null):string {
+  return day_label && day_label !== "dnes" ? `otvárame ${day_label} o ${time}` : `otvárame o ${time}`
+}
 
-  scrollTo(selector:string):void {
-    if(typeof document !== "undefined") {
-      const element:HTMLElement|null = document.querySelector(selector) as HTMLElement || null // Gets The Element
+// Function For Turn The API Response Into Pill Text
+function toStatusView(response:StatusResponse):StatusView {
+  let detail:string|null = null
 
-      if(element) {
-        let offset:number = 60 // Stores The Offset
-        
-        if(element.classList.contains("booking_container")) offset = 60 + 20 + 10 // Sets The Offset (Navigation Bar + Padding)
-        if(element.classList.contains("contact_form")) offset = 60 + 20 + 10 // Sets The Offset (Navigation Bar + Padding)
+  if(response.is_open && response.open_till) detail = `do ${response.open_till}`
+  else if(!response.is_open && response.next_open) detail = formatNextOpening(response.next_open, response.next_open_day ?? null)
+  else if(!response.is_open && response.reason) detail = response.reason
 
-        const element_position:number = element.getBoundingClientRect().top + window.scrollY // Gets The Element's Position
-
-        window.scrollTo({ top: element_position - offset, behavior: "smooth" }) // Starts The Scroll Animation
-      }
-    }
+  return {
+    is_open: response.is_open ?? false,
+    label: response.status ?? "",
+    detail
   }
 }

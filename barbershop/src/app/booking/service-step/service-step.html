@@ -1,0 +1,48 @@
+@switch (store.services_state()) {
+    @case ("error") {
+        <div class="step_notice" role="alert">
+            <p>Služby sa nepodarilo načítať.</p>
+            <button appButton variant="secondary" size="sm" type="button" (click)="store.load()">Skúsiť znova</button>
+        </div>
+    }
+
+    @case ("ready") {
+        @if (store.services().length > 0) {
+            <fieldset class="service_options">
+                <legend class="visually_hidden">Vyberte službu</legend>
+
+                @for (service of store.services(); track service.id) {
+                    <label class="service_option" [class.selected]="store.service()?.id === service.id">
+                        <input type="radio" name="booking_service" [value]="service.id" [checked]="store.service()?.id === service.id" (change)="choose(service)">
+                        <span class="radio" aria-hidden="true"></span>
+
+                        <span class="info">
+                            <span class="title">{{ service.title }}</span>
+                            <span class="duration"><i class="fa-regular fa-clock" aria-hidden="true"></i> {{ service.duration | duration }}</span>
+                        </span>
+
+                        <span class="price">{{ service.price | euro }}</span>
+                    </label>
+                }
+            </fieldset>
+        } @else {
+            <div class="step_notice">
+                <p>Momentálne nie sú dostupné žiadne služby na rezerváciu.</p>
+            </div>
+        }
+    }
+
+    @default {
+        <div class="service_options" aria-busy="true" aria-label="Načítavam služby">
+            @for (placeholder of [1, 2, 3]; track placeholder) {
+                <div class="service_option skeleton" aria-hidden="true"></div>
+            }
+        </div>
+    }
+}
+
+<div class="step_actions">
+    <button appButton block type="button" [disabled]="!store.service()" (click)="store.goTo(2)">
+        Pokračovať <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+    </button>
+</div>

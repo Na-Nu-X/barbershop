@@ -1,79 +1,82 @@
-import { 
-  Component, 
-  HostListener, 
-  afterNextRender, 
-  ChangeDetectorRef
-} from "@angular/core"
+import { Component, DOCUMENT, ElementRef, HostListener, effect, inject, signal, viewChild } from "@angular/core"
+import { Scroll, SectionId } from "../services/scroll"
+import { Button } from "../shared/button/button"
+import { SITE_CONFIG } from "../config/site.config"
 
-import { 
-  AsyncPipe, 
-  CurrencyPipe,
-  CommonModule
-} from "@angular/common"
+interface NavigationLink {
+  label:string,
+  section:SectionId
+}
 
-import { FormsModule } from "@angular/forms"
-import { Observable } from "rxjs"
+const SCROLLED_OFFSET:number = 24 // Scroll Distance (px) After Which The Bar Gets A Solid Background
+const DESKTOP_BREAKPOINT:number = 900 // Must Match $bp-md In _variables.scss
 
 @Component({
   selector: "app-navigation-bar",
-  imports: [AsyncPipe, CurrencyPipe, CommonModule, FormsModule],
+  imports: [Button],
   templateUrl: "./navigation-bar.html",
   styleUrl: "./navigation-bar.scss",
 })
-
 export class NavigationBar {
-  is_open:boolean = false // Stores The Information If The Menu Is Open
-  is_scrolled:boolean = false  // Stores The Information If The Page Is Scrolled
-  cart_amount$!:Observable<number>
-  current_index:number = 0 // Stores The Current Index Of The Active Item
-  
-  constructor(private cdr:ChangeDetectorRef) {
-    afterNextRender(() => {
-      this.checkWindowWidth(window.innerWidth)
-      this.onWindowScroll()
+  private readonly ScrollService = inject(Scroll)
+  private readonly document = inject(DOCUMENT)
+  private readonly menu_toggle = viewChild<ElementRef<HTMLButtonElement>>("menu_toggle")
+
+  protected readonly site = SITE_CONFIG // Business Details
+
+  protected readonly is_open = signal<boolean>(false) // Stores The Information If The Mobile Menu Is Open
+  protected readonly is_scrolled = signal<boolean>(false) // Stores The Information If The Page Is Scrolled
+
+  protected readonly links:NavigationLink[] = [
+    { label: "Služby", section: "services" },
+    { label: "Rezervácia", section: "booking" },
+    { label: "Barberi", section: "barbers" },
+    { label: "Kontakt", section: "contact" }
+  ]
+
+  constructor() {
+    // Locks The Page Scroll While The Mobile Menu Is Open
+    effect(() => {
+      this.document.body.classList.toggle("scroll_locked", this.is_open())
     })
   }
 
-  // Method For Toggle The Menu
+  // Method For Toggle The Mobile Menu
   toggleMenu():void {
-    this.is_open = !this.is_open // Shows / Hides The Menu
+    this.is_open.update((open) => !open)
   }
 
-  // Window Scroll Functionality
-  @HostListener("window:scroll", [])
-  onWindowScroll():void {
-    if(typeof window !== "undefined") {
-      this.is_scrolled = window.scrollY > 50 // Updates The Information If The Page Is Scrolled
-    }
+  // Method For Close The Mobile Menu (Optionally Returning Focus To The Toggle Button)
+  closeMenu(restore_focus:boolean = false):void {
+    if(!this.is_open()) return
+
+    this.is_open.set(false)
+    if(restore_focus) this.menu_toggle()?.nativeElement.focus()
   }
 
-  // Window Resize Functionality
+  // Method For Navigate To A Section Or The Top (Keeps The Native Anchor As A No-JS Fallback)
+  navigate(event:MouseEvent, section:SectionId|null):void {
+    event.preventDefault()
+
+    if(section) this.ScrollService.toSection(section)
+    else this.ScrollService.toTop()
+
+    this.closeMenu()
+  }
+
+  @HostListener("window:scroll")
+  onScroll():void {
+    this.is_scrolled.set((this.document.defaultView?.scrollY ?? 0) > SCROLLED_OFFSET)
+  }
+
+  @HostListener("document:keydown.escape")
+  onEscape():void {
+    this.closeMenu(true)
+  }
+
+  // Closes The Mobile Menu When The Window Grows To Desktop Width
   @HostListener("window:resize", ["$event"])
-  onResize(event:any):void {
-    this.checkWindowWidth(event.target.innerWidth)
-  }
-
-  // Method For Check The Window Width
-  private checkWindowWidth(width:number):void {
-    if(width > 600) {
-      this.is_open = false // Hides The Menu
-    }
-  }
-
-  scrollTo(selector:string):void {
-    if(typeof document !== "undefined") {
-      const element:HTMLElement|null = document.querySelector(selector) as HTMLElement || null // Gets The Element
-
-      if(element) {
-        let offset:number = 60 // Stores The Offset
-        
-        if(element.classList.contains("booking_container")) offset = 60 + 20 + 10 // Sets The Offset (Navigation Bar + Padding)
-        if(element.classList.contains("contact_form")) offset = 60 + 20 + 10 // Sets The Offset (Navigation Bar + Padding)
-
-        const element_position:number = element.getBoundingClientRect().top + window.scrollY // Gets The Element's Position
-
-        window.scrollTo({ top: element_position - offset, behavior: "smooth" }) // Starts The Scroll Animation
-      }
-    }
+  onResize(event:UIEvent):void {
+    if((event.target as Window).innerWidth >= DESKTOP_BREAKPOINT) this.closeMenu()
   }
 }

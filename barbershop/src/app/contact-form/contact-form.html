@@ -1,13 +1,99 @@
-<form class="contact_form" action="">
-    <h2>Kontaktujte nás</h2>
+<section class="contact" id="contact" aria-labelledby="contact_title">
+    <!-- Contact Details -->
+    <div class="info">
+        <app-section-heading
+            headingId="contact_title"
+            align="start"
+            eyebrow="Kontakt"
+            title="Ozvite sa nám"
+            description="Máte otázku alebo špeciálnu požiadavku? Napíšte nám správu alebo nám rovno zavolajte."
+        />
 
-    <div class="name_container">
-        <input type="text" name="first_name" placeholder="Meno" maxlength="20" required [(ngModel)]="contact_form.first_name">
-        <input type="text" name="last_name" placeholder="Priezvisko" maxlength="50" required [(ngModel)]="contact_form.last_name">
+        <ul class="details">
+            <li>
+                <span class="icon" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
+                <div>
+                    <p class="label">Adresa</p>
+                    <p>{{ site.address.street }}, {{ site.address.postal_code }} {{ site.address.city }}</p>
+                </div>
+            </li>
+
+            <li>
+                <span class="icon" aria-hidden="true"><i class="fa-solid fa-phone"></i></span>
+                <div>
+                    <p class="label">Telefón</p>
+                    <a [href]="'tel:' + site.contact.phone">{{ site.contact.phone_display }}</a>
+                </div>
+            </li>
+
+            <li>
+                <span class="icon" aria-hidden="true"><i class="fa-regular fa-envelope"></i></span>
+                <div>
+                    <p class="label">E-mail</p>
+                    <a [href]="'mailto:' + site.contact.email">{{ site.contact.email }}</a>
+                </div>
+            </li>
+        </ul>
+
+        @if (site.socials.length > 0) {
+            <div class="socials">
+                @for (social of site.socials; track social.url) {
+                    <a [href]="social.url" [attr.aria-label]="social.label" target="_blank" rel="noopener"><i [class]="social.icon" aria-hidden="true"></i></a>
+                }
+            </div>
+        }
     </div>
 
-    <input type="email" name="email_address" placeholder="E-mail" maxlength="50" required [(ngModel)]="contact_form.email_address">
-    <textarea name="message" placeholder="Správa..." rows="5" maxlength="250" required [(ngModel)]="contact_form.message"></textarea>
+    <!-- Form -->
+    <form class="form_card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="name_row">
+            <div class="field">
+                <label class="field_label" for="contact_first_name">Meno</label>
+                <input id="contact_first_name" type="text" formControlName="first_name" autocomplete="given-name" maxlength="20"
+                    [attr.aria-invalid]="error('first_name') ? true : null" [attr.aria-describedby]="error('first_name') ? 'contact_first_name_error' : null">
+                @if (error("first_name"); as message) {
+                    <p class="field_error" id="contact_first_name_error">{{ message }}</p>
+                }
+            </div>
 
-    <button type="submit" class="send" (click)="sendMessage()">Odoslať správu</button>
-</form>
+            <div class="field">
+                <label class="field_label" for="contact_last_name">Priezvisko</label>
+                <input id="contact_last_name" type="text" formControlName="last_name" autocomplete="family-name" maxlength="50"
+                    [attr.aria-invalid]="error('last_name') ? true : null" [attr.aria-describedby]="error('last_name') ? 'contact_last_name_error' : null">
+                @if (error("last_name"); as message) {
+                    <p class="field_error" id="contact_last_name_error">{{ message }}</p>
+                }
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="field_label" for="contact_email">E-mail</label>
+            <input id="contact_email" type="email" formControlName="email_address" autocomplete="email" inputmode="email" maxlength="50"
+                [attr.aria-invalid]="error('email_address') ? true : null" [attr.aria-describedby]="error('email_address') ? 'contact_email_error' : null">
+            @if (error("email_address"); as message) {
+                <p class="field_error" id="contact_email_error">{{ message }}</p>
+            }
+        </div>
+
+        <div class="field">
+            <div class="label_row">
+                <label class="field_label" for="contact_message">Správa</label>
+                <span class="counter" [class.full]="message_length().length >= message_max_length" aria-hidden="true">{{ message_length().length }} / {{ message_max_length }}</span>
+            </div>
+
+            <textarea id="contact_message" formControlName="message" rows="5" [attr.maxlength]="message_max_length"
+                [attr.aria-invalid]="error('message') ? true : null" [attr.aria-describedby]="error('message') ? 'contact_message_error' : null"></textarea>
+            @if (error("message"); as message) {
+                <p class="field_error" id="contact_message_error">{{ message }}</p>
+            }
+        </div>
+
+        <button appButton block type="submit" [disabled]="is_sending()">
+            @if (is_sending()) {
+                <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Odosielam…
+            } @else {
+                Odoslať správu <i class="fa-regular fa-paper-plane" aria-hidden="true"></i> <!-- https://fontawesome.com/icons/paper-plane -->
+            }
+        </button>
+    </form>
+</section>

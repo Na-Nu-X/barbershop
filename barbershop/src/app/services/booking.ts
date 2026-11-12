@@ -1,53 +1,96 @@
-import { Injectable } from "@angular/core"
-import { HttpClient } from "@angular/common/http"
-import { Observable } from "rxjs"
-
-import type { Customer } from "../booking/booking"
+import { Injectable, inject } from "@angular/core"
+import { HttpClient, HttpParams } from "@angular/common/http"
+import { Observable, shareReplay } from "rxjs"
+import { apiUrl } from "../config/api"
 
 export interface Service {
     id:number,
     title:string,
-    duration:number,
-    price:number
+    description:string,
+    duration:number, // Minutes
+    price:number // Cents
 }
 
-interface AvailableServicesResponse {
+export interface Customer {
+    first_name:string,
+    last_name:string,
+    phone_number:string
+}
+
+export interface Slot {
+    slot:string, // "HH:MM"
+    is_available:boolean
+}
+
+export interface OpeningDay {
+    day_of_week:number, // ISO Weekday, 1 = Monday
+    is_closed:boolean,
+    open_time:string|null,
+    close_time:string|null
+}
+
+export interface AppointmentRequest {
+    customer:Customer,
+    service_id:number,
+    date:string, // "YYYY-MM-DD"
+    time_start:string // "HH:MM"
+}
+
+export interface ApiMessageResponse {
     success:boolean,
-    message:string,
+    message:string
+}
+
+export interface AvailableServicesResponse extends ApiMessageResponse {
     services:Service[]
 }
 
-interface AvailableSlotsResponse {
-    success:boolean,
-    message:string,
+export interface AvailableSlotsResponse extends ApiMessageResponse {
+    is_closed:boolean,
+    slots_data:Slot[]
+}
 
-    slots_data:{
-        slot:string,
-        is_available:boolean
-    }[]
+export interface OpeningHoursResponse extends ApiMessageResponse {
+    opening_hours:OpeningDay[],
+    booking_horizon_days:number
 }
 
 @Injectable({
   providedIn: "root"
 })
 export class Booking {
-    constructor(private http:HttpClient) {}
+    private readonly http = inject(HttpClient)
 
-    // Method For Get The Available Services
+    // Shared Requests For Data That Rarely Changes (A Failed Request Is Retried On The Next Call)
+    private services_request$:Observable<AvailableServicesResponse>|null = null
+    private opening_hours_request$:Observable<OpeningHoursResponse>|null = null
+
+    // Method For Get The Available Services (Used By The Price List And The Booking Form)
     getAvailableServices():Observable<AvailableServicesResponse> {
-        const api_url:string = `http://127.0.0.1:8001/api/get-available-services/` // Connection To The Back-End API
-        return this.http.get<AvailableServicesResponse>(api_url) // Returns The Data
+        this.services_request$ ??= this.http.get<AvailableServicesResponse>(apiUrl("get-available-services/")).pipe(
+            shareReplay({ bufferSize: 1, refCount: false })
+        )
+
+        return this.services_request$
     }
 
-    // Method For Get The Available Slots
-    getAvailableSlots(date:string):Observable<AvailableSlotsResponse> {
-        const api_url:string = `http://127.0.0.1:8001/api/get-available-slots/?date=${date}` // Connection To The Back-End API
-        return this.http.get<AvailableSlotsResponse>(api_url) // Returns The Data
+    // Method For Get The Weekly Opening Hours And How Far Ahead Booking Is Allowed
+    getOpeningHours():Observable<OpeningHoursResponse> {
+        this.opening_hours_request$ ??= this.http.get<OpeningHoursResponse>(apiUrl("get-opening-hours/")).pipe(
+            shareReplay({ bufferSize: 1, refCount: false })
+        )
+
+        return this.opening_hours_request$
+    }
+
+    // Method For Get The Bookable Start Times For A Service On A Date (Never Cached - Availability Changes Constantly)
+    getAvailableSlots(date:string, service_id:number):Observable<AvailableSlotsResponse> {
+        const params:HttpParams = new HttpParams().set("date", date).set("service_id", service_id)
+        return this.http.get<AvailableSlotsResponse>(apiUrl("get-available-slots/"), { params })
     }
 
     // Method For Create The Appointment
-    createAppointment(customer:Customer, service_id:number, time_start:string, date:string):Observable<any> {
-        const api_url = "http://127.0.0.1:8001/api/create-appointment/" // Connection To The Back-End API
-        return this.http.post<any>(api_url, { customer, service_id, time_start, date }) // Returns The Data
+    createAppointment(request:AppointmentRequest):Observable<ApiMessageResponse> {
+        return this.http.post<ApiMessageResponse>(apiUrl("create-appointment/"), request)
     }
 }

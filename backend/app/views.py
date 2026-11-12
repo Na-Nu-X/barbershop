@@ -1,13 +1,22 @@
 import json
+import logging
+import re
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from datetime import datetime, timedelta, time
+from datetime import datetime
 from rest_framework.views import csrf_exempt
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
-from django.utils import timezone
+from django.db import transaction
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+from django.template.defaultfilters import linebreaksbr
+from django.utils.html import format_html
 from .models import Service, Appointment, ContactMessage, BarbershopConfig, OpeningHour, Barber
+from .scheduling import BOOKING_HORIZON_DAYS, BookingError, ensure_slot_bookable, get_day_schedule, get_opening_hour, is_open_on, local_now, next_opening
+
+logger = logging.getLogger(__name__)
 
 @csrf_exempt
 def getStatus(request):
@@ -18,7 +27,7 @@ def getStatus(request):
         }, status=405)
 
     config = BarbershopConfig.objects.first() # Gets The Global Config
-    
+
     if config and config.is_force_closed:
         return JsonResponse({
             "success": True,
@@ -28,34 +37,10 @@ def getStatus(request):
             "reason": config.closure_reason or "Dôvod nebol uvedený."
         }, status=200)
 
-    now = timezone.localtime(timezone.now()) # Gets The Current Time
-    current_day_index = now.isoweekday() # Gets The Current Day Index
-    current_time = now.time() # Gets The Current Time
+    now = local_now() # Gets The Current Local Time
+    opening_hour = get_opening_hour(now.date()) # Gets The Opening Hour For The Current Day
 
-    try:
-        opening_hour = OpeningHour.objects.get(day_of_week=current_day_index) # Gets The Opening Hour For The Current Day
-
-    except OpeningHour.DoesNotExist:
-        return JsonResponse({
-            "success": True,
-            "message": "Stav podniku bol úspešne získaný.",
-            "is_open": False,
-            "status": "Zatvorené",
-            "reason": "Neboli zadané otváracie hodiny."
-        }, status=200)
-
-    if opening_hour.is_closed_all_day:
-        return JsonResponse({
-            "success": True,
-            "message": "Stav podniku bol úspešne získaný.",
-            "is_open": False,
-            "status": "Zatvorené",
-            "reason": "Pravidelný zatvárací deň."
-        })
-
-    is_inside_opening_hours = opening_hour.open_time <= current_time <= opening_hour.close_time # Checks If The Current Time Is In Opening Hours
-
-    if is_inside_opening_hours:
+    if is_open_on(opening_hour) and opening_hour.open_time <= now.time() < opening_hour.close_time:
         return JsonResponse({
             "success": True,
             "message": "Stav podniku bol úspešne získaný.",
@@ -63,17 +48,54 @@ def getStatus(request):
             "status": "Otvorené",
             "reason": None,
             "open_till": opening_hour.close_time.strftime("%H:%M")
-        })
+        }, status=200)
+
+    # Closed Right Now - Explains Why And When The Shop Opens Next
+    if opening_hour is None:
+        reason = "Neboli zadané otváracie hodiny."
+
+    elif not is_open_on(opening_hour):
+        reason = "Pravidelný zatvárací deň."
 
     else:
-        return JsonResponse({
-            "success": True,
-            "message": "Stav podniku bol úspešne získaný.",
-            "is_open": False,
-            "status": "Zatvorené",
-            "reason": "Mimo otváracích hodín.",
-            "next_open": opening_hour.open_time.strftime("%H:%M")
+        reason = "Mimo otváracích hodín."
+
+    upcoming = next_opening(now) # Gets The Next Opening (Later Today Or The Next Open Day)
+
+    return JsonResponse({
+        "success": True,
+        "message": "Stav podniku bol úspešne získaný.",
+        "is_open": False,
+        "status": "Zatvorené",
+        "reason": reason,
+        "next_open": upcoming.open_time.strftime("%H:%M") if upcoming else None,
+        "next_open_day": upcoming.day_label if upcoming else None
+    }, status=200)
+
+@api_view(["GET"])
+def getOpeningHours(request):
+    opening_hours = {one_hour.day_of_week: one_hour for one_hour in OpeningHour.objects.all()} # Gets The Weekly Opening Hours
+
+    # Always Returns All 7 Days (Missing Days Count As Closed)
+    days_data = []
+
+    for day_of_week in range(1, 8):
+        one_hour = opening_hours.get(day_of_week)
+        is_open = is_open_on(one_hour)
+
+        days_data.append({
+            "day_of_week": day_of_week,
+            "is_closed": not is_open,
+            "open_time": one_hour.open_time.strftime("%H:%M") if is_open else None,
+            "close_time": one_hour.close_time.strftime("%H:%M") if is_open else None
         })
+
+    return JsonResponse({
+        "success": True,
+        "message": "Otváracie hodiny boli nájdené.",
+        "opening_hours": days_data,
+        "booking_horizon_days": BOOKING_HORIZON_DAYS
+    }, status=200)
 
 @csrf_exempt
 def getAvailableServices(request):
@@ -87,6 +109,7 @@ def getAvailableServices(request):
             services_data.append({
                 "id": one_service.id,
                 "title": one_service.title,
+                "description": one_service.description,
                 "duration": one_service.duration,
                 "price": one_service.price
             })
@@ -107,6 +130,7 @@ def getAvailableServices(request):
 @api_view(["GET"])
 def getAvailableSlots(request):
     date_string = request.query_params.get("date") # Gets The Date From The URL Parameters
+    service_id = request.query_params.get("service_id") # Gets The Service ID From The URL Parameters
 
     if not date_string:
         return JsonResponse({
@@ -114,88 +138,136 @@ def getAvailableSlots(request):
             "message": "Nebol vybraný žiaden dátum."
         }, status=400)
 
-    START_HOUR = 9 # Defines The Start Hour
-    END_HOUR = 17 # Defines The End Hour
-    SLOT_DURATION = 30 # Defines The Slot Duration
-    
-    chosen_date = datetime.strptime(date_string, '%Y-%m-%d').date() # Gets The Chosen Date
-
-    all_slots = [] # Stores The All Slots
-    start_time = datetime.combine(chosen_date, time(START_HOUR, 0)) # Gets The Start Time
-    end_time = datetime.combine(chosen_date, time(END_HOUR, 0)) # Gets The End Time
-
-    while start_time < end_time:
-        all_slots.append(start_time.time()) # Adds The Available Slot
-        start_time += timedelta(minutes=SLOT_DURATION) # Increases The Start Time
-
-    booked_appointments = Appointment.objects.filter(date=chosen_date, is_active=True) # Gets The Already Booked Appointments For The Chosen Date
-    booked_times = [app.time_start for app in booked_appointments] # Gets The Already Booked Times For The Chosen Date
-
-    slots_data = [] # Stores The Slots Data
-
-    for one_slot in all_slots:
-        slots_data.append({
-            "slot": one_slot.strftime('%H:%M'),
-            "is_available": one_slot not in booked_times
-        })
-
-    return JsonResponse({
-        "success": True,
-        "message": "Položky boli nájdené.",
-        "slots_data": slots_data, 
-    }, status=200)
-
-@api_view(["POST"])
-def createAppointment(request):
-    customer = request.data.get("customer") # Gets The Customer's Data
-    first_name = customer.get("first_name") # Gets The Customer's First Name
-    last_name = customer.get("last_name") # Gets The Customer's Last Name
-    phone_number = customer.get("phone_number") # Gets The Customer's Phone Number
-    service_id = request.data.get("service_id") # Gets The Service ID
-    time_start = request.data.get("time_start") # Gets The Time Start
-    date = request.data.get("date") # Gets The Date
-
-    # Checks If All Data Exist
-    if not all([customer, first_name, last_name, phone_number, service_id, time_start, date]):
+    if not service_id:
         return JsonResponse({
             "success": False,
-            "message": "Všetky polia sú povinné."
+            "message": "Nebola vybraná služba."
         }, status=400)
 
     try:
-        service = Service.objects.get(id=service_id) # Gets The Service
-        chosen_time = datetime.strptime(time_start, '%H:%M').time() # Gets The Chosen Time
-        chosen_date = datetime.strptime(date, '%Y-%m-%d').date() # Gets The Chosen Date
+        chosen_date = datetime.strptime(date_string, "%Y-%m-%d").date() # Gets The Chosen Date
 
-    except(Service.DoesNotExist):
+    except ValueError:
+        return JsonResponse({
+            "success": False,
+            "message": "Neplatný formát dátumu."
+        }, status=400)
+
+    try:
+        service = Service.objects.get(id=int(service_id)) # Gets The Chosen Service (Its Duration Decides Which Times Fit)
+
+    except (ValueError, Service.DoesNotExist):
         return JsonResponse({
             "success": False,
             "message": "Zvolená služba neexistuje."
         }, status=400)
 
-    except(ValueError):
+    try:
+        schedule = get_day_schedule(chosen_date, service) # Builds The Slots From Opening Hours And Existing Appointments
+
+    except BookingError as error:
         return JsonResponse({
             "success": False,
-            "message": "Neplatný formát času."
-        }, status=400)
+            "message": error.message
+        }, status=error.status)
 
-    is_booked = Appointment.objects.filter(date=chosen_date, time_start=chosen_time).exists() # Checks If The Appointment Is Already Booked
+    if schedule.is_closed:
+        message = "V tento deň máme zatvorené."
 
-    if is_booked:
+    elif not any(one_slot.is_available for one_slot in schedule.slots):
+        message = "Na zvolený deň nie sú voľné žiadne termíny."
+
+    else:
+        message = "Položky boli nájdené."
+
+    return JsonResponse({
+        "success": True,
+        "message": message,
+        "is_closed": schedule.is_closed,
+        "slots_data": [
+            {
+                "slot": one_slot.start.strftime("%H:%M"),
+                "is_available": one_slot.is_available
+            }
+            for one_slot in schedule.slots
+        ],
+    }, status=200)
+
+PHONE_NUMBER_PATTERN = re.compile(r"^\+?[0-9][0-9 ()/-]{5,18}$") # e.g. "+421 900 123 456", "0900/123 456"
+
+@api_view(["POST"])
+def createAppointment(request):
+    data = request.data if isinstance(request.data, dict) else {} # Gets The Request Data
+    customer = data.get("customer") if isinstance(data.get("customer"), dict) else {} # Gets The Customer's Data
+
+    first_name = str(customer.get("first_name") or "").strip() # Gets The Customer's First Name
+    last_name = str(customer.get("last_name") or "").strip() # Gets The Customer's Last Name
+    phone_number = str(customer.get("phone_number") or "").strip() # Gets The Customer's Phone Number
+    service_id = data.get("service_id") # Gets The Service ID
+    time_start = data.get("time_start") # Gets The Time Start
+    date = data.get("date") # Gets The Date
+
+    # Checks If All Data Exist
+    if not all([first_name, last_name, phone_number, service_id, time_start, date]):
         return JsonResponse({
             "success": False,
-            "message": "Tento termín bol práve obsadený. Vyberte si, prosím, iný."
+            "message": "Všetky polia sú povinné."
         }, status=400)
 
-    # Creates The New Appointment
-    Appointment.objects.create(
-        service=service,
-        first_name=first_name,
-        last_name=last_name,
-        phone_number=phone_number,
-        date=chosen_date,
-        time_start=chosen_time
-    )
+    # Checks The Lengths Allowed By The Database
+    if len(first_name) > 20 or len(last_name) > 50:
+        return JsonResponse({
+            "success": False,
+            "message": "Meno môže mať najviac 20 a priezvisko najviac 50 znakov."
+        }, status=400)
+
+    if not PHONE_NUMBER_PATTERN.match(phone_number):
+        return JsonResponse({
+            "success": False,
+            "message": "Zadajte, prosím, platné telefónne číslo."
+        }, status=400)
+
+    try:
+        service = Service.objects.get(id=int(service_id)) # Gets The Service
+
+    except (TypeError, ValueError, Service.DoesNotExist):
+        return JsonResponse({
+            "success": False,
+            "message": "Zvolená služba neexistuje."
+        }, status=400)
+
+    try:
+        chosen_time = datetime.strptime(str(time_start), "%H:%M").time() # Gets The Chosen Time
+        chosen_date = datetime.strptime(str(date), "%Y-%m-%d").date() # Gets The Chosen Date
+
+    except ValueError:
+        return JsonResponse({
+            "success": False,
+            "message": "Neplatný formát dátumu alebo času."
+        }, status=400)
+
+    try:
+        with transaction.atomic():
+            # Locks That Weekday's Opening Hours Row So Two Simultaneous Requests Cannot Book Overlapping Times (PostgreSQL)
+            list(OpeningHour.objects.select_for_update().filter(day_of_week=chosen_date.isoweekday()))
+
+            ensure_slot_bookable(chosen_date, chosen_time, service) # Checks Opening Hours, Duration And Overlaps
+
+            # Creates The New Appointment
+            Appointment.objects.create(
+                service=service,
+                first_name=first_name,
+                last_name=last_name,
+                phone_number=phone_number,
+                date=chosen_date,
+                time_start=chosen_time
+            )
+
+    except BookingError as error:
+        return JsonResponse({
+            "success": False,
+            "message": error.message
+        }, status=error.status)
 
     return Response({
         "success": True,
@@ -204,56 +276,83 @@ def createAppointment(request):
 
 @csrf_exempt
 def sendMessage(request):
-    if request.method == "POST":
+    if request.method != "POST":
+        return JsonResponse({
+            "success": False,
+            "message": "Správa sa dá odoslať len pomocou POST metódy."
+        }, status=405)
+
+    try:
+        data = json.loads(request.body) # Gets The Data
+
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        data = None
+
+    if not isinstance(data, dict):
+        return JsonResponse({
+            "success": False,
+            "message": "Neplatné dáta formulára."
+        }, status=400)
+
+    first_name = str(data.get("first_name") or "").strip() # Gets The First Name
+    last_name = str(data.get("last_name") or "").strip() # Gets The Last Name
+    email_address = str(data.get("email_address") or "").strip() # Gets The E-mail Address
+    message = str(data.get("message") or "").strip() # Gets The Message
+
+    if not all([first_name, last_name, email_address, message]):
+        return JsonResponse({
+            "success": False,
+            "message": "Prosím, vyplňte všetky povinné polia."
+        }, status=400)
+
+    # Checks The Lengths Allowed By The Database
+    if len(first_name) > 20 or len(last_name) > 50 or len(email_address) > 50 or len(message) > 250:
+        return JsonResponse({
+            "success": False,
+            "message": "Niektoré z polí je príliš dlhé."
+        }, status=400)
+
+    try:
+        validate_email(email_address)
+
+    except ValidationError:
+        return JsonResponse({
+            "success": False,
+            "message": "Zadajte, prosím, platnú e-mailovú adresu."
+        }, status=400)
+
+    # Saves The Message First, So It Is Never Lost (It Is Always Visible In The Admin)
+    ContactMessage.objects.create(
+        first_name=first_name,
+        last_name=last_name,
+        email_address=email_address,
+        message=message
+    )
+
+    # Notifies The Shop By E-mail (Sent From The Shop's Own Address; "Reply" Goes To The Customer)
+    shop_address = settings.EMAIL_HOST_USER
+
+    if shop_address:
+        subject = f"Barbershop - správa od zákazníka {first_name} {last_name}"
+        text_content = f"{first_name} {last_name} - {email_address}\n\n{message}"
+        html_content = format_html(
+            "<p><b>{} {} - {}</b></p><p>{}</p>",
+            first_name, last_name, email_address, linebreaksbr(message) # Escapes Everything The Customer Typed
+        )
+
+        mail_message = EmailMultiAlternatives(subject, text_content, shop_address, [shop_address], reply_to=[email_address])
+        mail_message.attach_alternative(html_content, "text/html")
+
         try:
-            data = json.loads(request.body) # Gets The Data
-
-            first_name = data.get("first_name") # Gets The First Name
-            last_name = data.get("last_name") # Gets The Last Name
-            email_address = data.get("email_address") # Gets The E-mail Address
-            message = data.get("message") # Gets The Message
-            
-            # Saves The New Message
-            ContactMessage.objects.create(
-                first_name=first_name,
-                last_name=last_name,
-                email_address=email_address,
-                message=message
-            )
-
-            # Sends Mail
-            subject = f"Barbershop - správa od zákazníka"
-            text_content = f"{first_name} {last_name} - {email_address}\n\n{message}"
-            sender = email_address
-            receiver = [settings.EMAIL_HOST_USER]
-            html_content = f"""
-                <p>
-                    <b>{first_name} {last_name} - {email_address}</b><br><br>
-                    {message}
-                </p>
-            """
-
-            mail_message = EmailMultiAlternatives(subject, text_content, sender, receiver)
-            mail_message.attach_alternative(html_content, "text/html")
-
             mail_message.send()
-            
-            return JsonResponse({
-                "success": True, 
-                "message": "Správa bola odoslaná."
-            }, status=200)
 
-        except Exception as e:
-            print(e)
-            return JsonResponse({
-                "success": False, 
-                "message": "Pri odosielaní správy došlo k chybe."
-            }, status=500)
-            
+        except Exception:
+            logger.exception("Contact message e-mail could not be sent.") # The Message Is Still Saved
+
     return JsonResponse({
-        "success": False, 
-        "message": "Správa sa dá odoslať len pomocou POST metódy."
-    }, status=405)
+        "success": True,
+        "message": "Správa bola odoslaná. Ozveme sa vám čo najskôr."
+    }, status=200)
 
 @csrf_exempt
 def getBarbers(request):

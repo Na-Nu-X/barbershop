@@ -1,0 +1,16 @@
+<dl class="summary">
+    <div class="row">
+        <dt><i class="fa-solid fa-scissors" aria-hidden="true"></i> Služba</dt>
+        <dd>{{ service().title }} <span class="muted">· {{ service().duration | duration }}</span></dd>
+    </div>
+
+    <div class="row">
+        <dt><i class="fa-regular fa-calendar" aria-hidden="true"></i> Termín</dt>
+        <dd>{{ date_label() }}, {{ time() }}</dd>
+    </div>
+
+    <div class="row total">
+        <dt><i class="fa-regular fa-credit-card" aria-hidden="true"></i> Cena</dt>
+        <dd>{{ service().price | euro }}</dd>
+    </div>
+</dl>

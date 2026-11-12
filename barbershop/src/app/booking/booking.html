@@ -1,53 +1,63 @@
-<div class="booking_container">
-    <h2>Vyberte si termín</h2>
-    
-    <input 
-        class="date_input" 
-        type="date" 
-        [min]="min_date" 
-        [max]="max_date"
-        (change)="selectDate($event)"
-    >
-  
-    <div class="slots_grid">
-        <button 
-            *ngFor="let one_slot of slots_data" 
-            class="slot_button"
-            [class.available]="one_slot.is_available"
-            [class.booked]="!one_slot.is_available"
-            [class.selected]="selected_slot === one_slot.slot"
-            [disabled]="!one_slot.is_available"
-            (click)="selectSlot(one_slot.slot)"
-        >
-            {{ one_slot.slot }}
-        </button>
+<section class="booking" id="booking" aria-labelledby="booking_title">
+    <app-section-heading
+        headingId="booking_title"
+        eyebrow="Rezervácia"
+        title="Rezervujte si termín"
+        description="Tri jednoduché kroky – a vaše kreslo je pripravené."
+    />
+
+    <div class="booking_card">
+        @if (store.confirmation(); as confirmation) {
+            <!-- Confirmation -->
+            <div class="confirmation">
+                <span class="check" aria-hidden="true"><i class="fa-solid fa-check"></i></span>
+
+                <h3 #step_heading tabindex="-1">Rezervácia je potvrdená</h3>
+                <p class="lead">Ďakujeme, {{ confirmation.customer.first_name }}. Tešíme sa na vás!</p>
+
+                <app-booking-summary [service]="confirmation.service" [date]="confirmation.date" [time]="confirmation.time" />
+
+                <p class="note">
+                    Potrebujete termín zmeniť alebo zrušiť? Zavolajte nám na
+                    <a [href]="'tel:' + site.contact.phone">{{ site.contact.phone_display }}</a>.
+                </p>
+
+                <button appButton variant="secondary" type="button" (click)="store.reset()">Nová rezervácia</button>
+            </div>
+        } @else {
+            <!-- Stepper -->
+            <ol class="stepper">
+                @for (step of steps(); track step.number) {
+                    <li [class.active]="store.step() === step.number" [class.done]="store.step() > step.number">
+                        <button type="button" [disabled]="!store.can_open()[step.number] || store.step() === step.number"
+                            [attr.aria-current]="store.step() === step.number ? 'step' : null" (click)="store.goTo(step.number)">
+                            <span class="number" aria-hidden="true">
+                                @if (store.step() > step.number) {
+                                    <i class="fa-solid fa-check"></i>
+                                } @else {
+                                    {{ step.number }}
+                                }
+                            </span>
+
+                            <span class="text">
+                                <span class="label"><span class="visually_hidden">Krok {{ step.number }}: </span>{{ step.label }}</span>
+                                @if (step.summary) {
+                                    <span class="summary">{{ step.summary }}</span>
+                                }
+                            </span>
+                        </button>
+                    </li>
+                }
+            </ol>
+
+            <!-- Active Step -->
+            <h3 class="step_title" #step_heading tabindex="-1">{{ current().title }}</h3>
+
+            @switch (store.step()) {
+                @case (1) { <app-service-step /> }
+                @case (2) { <app-datetime-step /> }
+                @case (3) { <app-details-step /> }
+            }
+        }
     </div>
-  
-    <ng-template #no_slots>
-        <p class="info_message">Na zvolený deň nie sú voľné žiadne termíny.</p>
-    </ng-template>
-
-    <form class="customer_form" action="" *ngIf="selected_slot">
-        <div class="name_container">
-            <input type="text" name="first_name" placeholder="Meno" maxlength="20" required [(ngModel)]="customer.first_name">
-            <input type="text" name="last_name" placeholder="Priezvisko" maxlength="50" required [(ngModel)]="customer.last_name">
-        </div>
-    
-        <input type="tel" name="phone_number" placeholder="Telefón" maxlength="50" required [(ngModel)]="customer.phone_number">
-
-        <div class="services_select_menu">
-            <div class="select" tabindex="0" (click)="toggleShowServicesSelectMenu()">
-                <span #selected_service_label>{{ services[0].title }}</span>
-                <i class="fas fa-angle-down"></i>
-            </div>
-
-            <div class="options_list" [class.active]="is_services_select_menu_open" [attr.inert]="!is_services_select_menu_open ? '' : null">
-                <div class="option" [class.selected]="one_service.title === selected_service" *ngFor="let one_service of services" (click)="selectService(one_service.id, one_service.title)" tabindex="0"><i class="fa-solid fa-scissors"></i><span>{{ one_service.title }} - {{ (one_service.price / 100) | currency:'EUR':'':'1.2-2':'sk-SK' }}€</span></div> <!-- https://fontawesome.com/icons/scissors -->
-            </div>
-        </div>
-        
-        <button class="confirm" title="Rezervovať" aria-label="Rezervovať" (click)="confirmBooking()">
-            Rezervovať čas o {{ selected_slot }}
-        </button>
-    </form>
-</div>
+</section>

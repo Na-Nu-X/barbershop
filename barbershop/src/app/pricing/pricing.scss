@@ -1,0 +1,160 @@
+@use "sass:color";
+@use "partials/variables" as *;
+@use "partials/mixins" as *;
+
+.pricing {
+    @include container;
+    padding-block: $section-padding;
+}
+
+.services_grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $space-4;
+    list-style: none;
+
+    @include media_up($bp-md) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: $space-5;
+    }
+}
+
+// Card
+
+.service_card {
+    @include card($space-5);
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    transition:
+        border-color $duration-base $ease,
+        transform $duration-base $ease,
+        box-shadow $duration-base $ease;
+
+    @include media_up($bp-sm) {
+        padding: $space-6;
+    }
+
+    &:not(.skeleton):hover {
+        border-color: color.adjust($color-accent, $alpha: -0.55);
+        transform: translateY(-2px);
+        box-shadow: $shadow-md;
+    }
+}
+
+// Menu-Style Header: Title ········ Price
+.card_head {
+    display: flex;
+    align-items: baseline;
+    gap: $space-3;
+
+    h3 {
+        font-size: $text-xl;
+        line-height: $leading-snug;
+    }
+
+    .leader {
+        flex: 1;
+        min-width: $space-5;
+        border-bottom: 1px dotted $color-border-strong;
+        transform: translateY(-4px);
+    }
+
+    .price {
+        font-family: $font-display;
+        font-size: $text-xl;
+        font-weight: $weight-semibold;
+        color: $color-accent;
+        white-space: nowrap;
+        font-variant-numeric: lining-nums tabular-nums; // Playfair Defaults To Old-Style Figures
+    }
+}
+
+.meta {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $text-sm;
+    color: $color-text-subtle;
+
+    i {
+        color: $color-text-muted;
+    }
+}
+
+.description {
+    color: $color-text-muted;
+    font-size: $text-md;
+}
+
+.book {
+    align-self: flex-start;
+    margin-top: auto;
+    margin-left: -$space-4; // Aligns The Ghost Button Text With The Card Content
+    padding-top: $space-4;
+
+    i {
+        transition: transform $duration-base $ease;
+    }
+
+    &:hover i {
+        transform: translateX(3px);
+    }
+}
+
+// Skeleton Loading
+
+.skeleton {
+    min-height: 168px;
+
+    .line {
+        display: block;
+        height: 14px;
+        border-radius: $radius-sm;
+        background: linear-gradient(90deg, $color-surface-raised 25%, color.adjust($color-surface-raised, $lightness: 4%) 50%, $color-surface-raised 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.4s ease-in-out infinite;
+
+        &.title {
+            width: 55%;
+            height: 22px;
+        }
+
+        &.meta {
+            width: 20%;
+        }
+
+        &.text {
+            width: 85%;
+        }
+    }
+}
+
+// Error / Empty Notice
+
+.notice {
+    @include card;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-3;
+    max-width: $container-narrow;
+    margin-inline: auto;
+    text-align: center;
+    color: $color-text-muted;
+
+    > i {
+        font-size: $text-xl;
+        color: $color-accent;
+    }
+}
+
+@keyframes shimmer {
+    from {
+        background-position: 200% 0;
+    }
+
+    to {
+        background-position: -200% 0;
+    }
+}

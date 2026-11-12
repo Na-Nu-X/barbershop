@@ -1,34 +1,94 @@
-<footer>
-    <h2>Barbershop</h2>
+<footer class="site_footer">
+    <div class="columns">
+        <!-- Brand -->
+        <div class="column brand">
+            @if (site.logo) {
+                <img class="logo" [src]="site.logo" [alt]="site.name">
+            } @else {
+                <p class="wordmark"><span class="mark" aria-hidden="true"><i class="fa-solid fa-scissors"></i></span> {{ site.name }}</p>
+            }
 
-    <div class="address">
-        <p>Mlynské nivy 5/A</p>
-        <p>821 08 Bratislava</p>
-    </div>
+            <p class="tagline">{{ site.tagline }}</p>
 
-    <div class="contact_us">
-        <p><i class="fa-regular fa-envelope"></i> <a href="mailto:behulpatrik@gmail.com" title="Napísať...">behulpatrik@gmail.com</a></p> <!-- https://fontawesome.com/icons/envelope -->
-        <p><i class="fa-solid fa-phone"></i> <a href="tel:+421940322633" title="Zavolať...">+421 940 322 633</a></p> <!-- https://fontawesome.com/icons/phone -->
-    </div>
-
-    <div class="social_media">
-        <a href="https://www.instagram.com/" title="Instagram" target="_blank"><i class="fa-brands fa-instagram"></i></a> <!-- https://fontawesome.com/icons/instagram -->
-        <a href="https://www.facebook.com/" title="Facebook" target="_blank"><i class="fa-brands fa-facebook"></i></a> <!-- https://fontawesome.com/icons/facebook -->
-        <a href="https://www.tiktok.com/" title="TikTok" target="_blank"><i class="fa-brands fa-tiktok"></i></a> <!-- https://fontawesome.com/icons/tiktok -->
-    </div>
-
-    <div class="payment_methods">
-        <div class="icons">
-            <img src="images/visa.png" title="Visa" alt="Visa"> <!-- https://www.flaticon.com/free-icon/visa_5968299 -->
-            <img src="images/mastercard.png" title="Mastercard" alt="Mastercard"> <!-- https://www.flaticon.com/free-icon/card_16174534 -->
-            <img src="images/amex.png" title="American Express" alt="American Express"> <!-- https://www.flaticon.com/free-icon/amex_179431 -->
-            <img src="images/discover.png" title="Discover" alt="Discover"> <!-- https://www.flaticon.com/free-icon/discover_349230 -->
-            <img src="images/diners_club.png" title="Diners Club" alt="Diners Club"> <!-- https://www.flaticon.com/free-icon/diners-club_229142 -->
-            <img src="images/jcb.png" title="JCB" alt="JCB"> <!-- https://www.flaticon.com/free-icon/jcb_196559 -->
+            <div class="social_media">
+                @for (social of site.socials; track social.url) {
+                    <a [href]="social.url" [attr.aria-label]="social.label" target="_blank" rel="noopener"><i [class]="social.icon" aria-hidden="true"></i></a>
+                }
+            </div>
         </div>
+
+        <!-- Contact -->
+        <div class="column">
+            <h2 class="column_title">Kontakt</h2>
+
+            <address class="contact_list">
+                <p><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ site.address.street }}, {{ site.address.postal_code }} {{ site.address.city }}</p>
+                <p><i class="fa-solid fa-phone" aria-hidden="true"></i> <a [href]="'tel:' + site.contact.phone">{{ site.contact.phone_display }}</a></p>
+                <p><i class="fa-regular fa-envelope" aria-hidden="true"></i> <a [href]="'mailto:' + site.contact.email">{{ site.contact.email }}</a></p>
+            </address>
+        </div>
+
+        <!-- Opening Hours -->
+        <div class="column">
+            <h2 class="column_title">Otváracie hodiny</h2>
+
+            @switch (hours_state()) {
+                @case ("ready") {
+                    <dl class="hours">
+                        @for (day of opening_days(); track day.day_of_week) {
+                            <div class="day" [class.today]="today() === day.day_of_week" [class.closed]="day.is_closed">
+                                <dt>
+                                    {{ day_names[day.day_of_week] }}
+                                    @if (today() === day.day_of_week) {
+                                        <span class="today_badge">dnes</span>
+                                    }
+                                </dt>
+                                <dd>{{ day.is_closed ? "Zatvorené" : day.open_time + " – " + day.close_time }}</dd>
+                            </div>
+                        }
+                    </dl>
+                }
+
+                @case ("error") {
+                    <p class="muted">Otváracie hodiny vám radi povieme na čísle <a [href]="'tel:' + site.contact.phone">{{ site.contact.phone_display }}</a>.</p>
+                }
+
+                @default {
+                    <div class="hours" aria-busy="true" aria-label="Načítavam otváracie hodiny">
+                        @for (placeholder of [1, 2, 3, 4, 5, 6, 7]; track placeholder) {
+                            <span class="hours_skeleton" aria-hidden="true"></span>
+                        }
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- Navigation -->
+        <nav class="column" aria-label="Odkazy v pätičke">
+            <h2 class="column_title">Navigácia</h2>
+
+            <ul class="links">
+                @for (link of links; track link.section) {
+                    <li><a [href]="'#' + link.section" (click)="navigate($event, link.section)">{{ link.label }}</a></li>
+                }
+            </ul>
+        </nav>
     </div>
-    
-    <div class="other">
-        <p class="copywrite">&copy; Barbershop 2026, Všetky práva vyhradené.</p>
+
+    <!-- Bottom Bar -->
+    <div class="bottom_bar">
+        <p class="copyright">&copy; {{ year }} {{ site.name }}. Všetky práva vyhradené.</p>
+
+        @if (site.payment_methods.length > 0) {
+            <div class="payment_methods" aria-label="Akceptujeme platobné karty">
+                @for (method of site.payment_methods; track method.label) {
+                    <img [src]="method.image" [title]="method.label" [alt]="method.label" loading="lazy">
+                }
+            </div>
+        }
+
+        <button type="button" class="back_to_top" (click)="ScrollService.toTop()">
+            Späť hore <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+        </button>
     </div>
 </footer>

@@ -1,5 +1,6 @@
 import { Component } from "@angular/core"
 import { Banner } from "../banner/banner"
+import { Pricing } from "../pricing/pricing"
 import { Booking } from "../booking/booking"
 import { ContactForm } from "../contact-form/contact-form"
 import { Profiles } from "../profiles/profiles"
@@ -9,6 +10,7 @@ import { Map } from "../map/map"
   selector: "app-home",
   imports: [
     Banner,
+    Pricing,
     Booking,
     ContactForm,
     Profiles,

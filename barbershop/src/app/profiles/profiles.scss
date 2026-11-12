@@ -1,80 +1,288 @@
-@import "../../partials/variables";
+@use "sass:color";
+@use "partials/variables" as *;
+@use "partials/mixins" as *;
 
-.barbers_container {
+.barbers {
+    @include container;
+    padding-block: $section-padding;
+}
+
+.barbers_grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, 400px - 10px);
-    justify-content: center;
-    gap: 20px;
-    margin-top: 20px;
-    padding: 0px 20px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: $space-5;
+    list-style: none;
+}
 
-    .one_barber {
-        max-width: 400px; 
-        margin: 0px auto;
-        padding: 20px;
-        background-color: $secondary-color;
-        border-radius: $medium-border-radius;
-        box-shadow: 0 4px 6px transparentize($main-color, 0.92), 0 2px 4px transparentize($main-color, 0.95);
+// Card
 
-        .header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
+.barber_card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background-color: $color-surface;
+    border: 1px solid $color-border;
+    border-radius: $radius-lg;
+    transition:
+        border-color $duration-base $ease,
+        transform $duration-base $ease;
 
-            .profile_picture {
-                width: 80px;
-                height: 80px;
-                border-radius: 50%;
-                object-fit: cover;
-                border: 2px solid $light-gray-color;
-            }
+    &:not(.skeleton):hover {
+        border-color: color.adjust($color-accent, $alpha: -0.55);
+        transform: translateY(-2px);
 
-            .info {
-                h3 {
-                    font-size: 1.2em;
-                    color: $main-color;
-                }
+        .portrait img {
+            transform: scale(1.03);
+        }
+    }
+}
 
-                .instagram {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 5px;
-                    color: $gray-color;
-                    text-decoration: none;
-                    transition: color 0.2s ease;
+.portrait {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 30% 20%, color.adjust($color-accent, $alpha: -0.85), transparent 60%),
+        $color-surface-raised;
 
-                    &:hover {
-                        color: #d946ef;
-                    }
-                }
-            }
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform $duration-slow $ease;
+    }
+
+    // Dark Fade So The Name Stays Readable On Any Photo
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 40% 0 0 0;
+        background: linear-gradient(0deg, color.adjust($color-surface, $alpha: -0.05) 0%, transparent 100%);
+        pointer-events: none;
+    }
+
+    .initials {
+        position: absolute;
+        inset: 0;
+        @include flex_center;
+        font-family: $font-display;
+        font-size: clamp(3rem, 8vw, 4.5rem);
+        color: color.adjust($color-accent, $alpha: -0.35);
+    }
+
+    .name {
+        position: absolute;
+        left: $space-5;
+        right: $space-5;
+        bottom: $space-4;
+        z-index: 1;
+
+        h3 {
+            font-size: $text-2xl;
         }
 
-        .bio {
-            margin-bottom: 20px;
-            color: $gray-color;
+        p {
+            font-size: $text-sm;
+            font-style: italic;
+            color: $color-accent;
         }
+    }
+}
 
-        .portfolio_grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
+.body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: $space-4;
+    padding: $space-4 $space-5 $space-5;
+}
 
-            .portfolio_image {
-                width: 100%;
-                aspect-ratio: 1 / 1;
-                object-fit: cover;
-                border-radius: $medium-border-radius;
-                box-shadow: 0 4px 6px transparentize($main-color, 0.92), 0 2px 4px transparentize($main-color, 0.95);
-                cursor: pointer;
-                transition: transform 0.2s ease, opacity 0.2s ease;
+.bio {
+    color: $color-text-muted;
+}
 
-                &:hover {
-                    transform: translateY(-5px);
-                    opacity: 0.9;
-                }
-            }
-        }
+// Portfolio Thumbnails
+
+.portfolio {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: $space-2;
+}
+
+.thumb {
+    all: unset;
+    @include focus_ring(2px);
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: $radius-sm;
+    cursor: zoom-in;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: opacity $duration-base $ease;
+    }
+
+    &:hover img {
+        opacity: 0.8;
+    }
+
+    .more {
+        position: absolute;
+        inset: 0;
+        @include flex_center;
+        font-weight: $weight-semibold;
+        color: $color-text;
+        background-color: color.adjust($color-bg, $alpha: -0.35);
+    }
+}
+
+.instagram {
+    @include focus_ring(2px);
+    display: inline-flex;
+    align-items: center;
+    gap: $space-2;
+    align-self: flex-start;
+    margin-top: auto;
+    font-size: $text-sm;
+    color: $color-text-muted;
+    text-decoration: none;
+    border-radius: $radius-sm;
+    transition: color $duration-fast $ease;
+
+    &:hover {
+        color: $color-accent;
+    }
+}
+
+// States
+
+.skeleton .portrait {
+    background: linear-gradient(90deg, $color-surface-raised 25%, color.adjust($color-surface-raised, $lightness: 4%) 50%, $color-surface-raised 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+
+    &::after {
+        display: none;
+    }
+}
+
+.notice {
+    @include card;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-3;
+    max-width: $container-narrow;
+    margin-inline: auto;
+    text-align: center;
+    color: $color-text-muted;
+}
+
+// Lightbox
+
+.lightbox {
+    max-width: min(92vw, 1100px);
+    max-height: 92vh;
+    margin: auto;
+    padding: 0;
+    overflow: visible;
+    background: transparent;
+    border: 0;
+
+    &::backdrop {
+        background-color: color.adjust($color-bg, $alpha: -0.08);
+        backdrop-filter: blur(6px);
+    }
+
+    &[open] {
+        animation: lightboxIn $duration-base $ease;
+    }
+
+    figure {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: $space-3;
+    }
+
+    // Sized Against The Viewport (Not %) - A Percentage Would Collapse Inside The Shrink-To-Fit Dialog
+    img {
+        width: auto;
+        height: auto;
+        max-width: min(92vw, 1100px);
+        max-height: calc(92vh - 48px);
+        border-radius: $radius-md;
+        box-shadow: $shadow-lg;
+    }
+
+    figcaption {
+        font-size: $text-sm;
+        color: $color-text-muted;
+    }
+}
+
+.lightbox_button {
+    all: unset;
+    @include flex_center;
+    @include focus_ring(2px);
+    position: fixed;
+    width: 48px;
+    height: 48px;
+    color: $color-text;
+    background-color: color.adjust($color-surface-raised, $alpha: -0.15);
+    border: 1px solid $color-border-strong;
+    border-radius: 50%;
+    cursor: pointer;
+    transition:
+        color $duration-fast $ease,
+        border-color $duration-fast $ease;
+
+    &:hover {
+        color: $color-accent;
+        border-color: $color-accent;
+    }
+
+    &.close {
+        top: $space-4;
+        right: $space-4;
+    }
+
+    &.prev,
+    &.next {
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    &.prev {
+        left: $space-4;
+    }
+
+    &.next {
+        right: $space-4;
+    }
+}
+
+@keyframes shimmer {
+    from {
+        background-position: 200% 0;
+    }
+
+    to {
+        background-position: -200% 0;
+    }
+}
+
+@keyframes lightboxIn {
+    from {
+        opacity: 0;
+        transform: scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
     }
 }

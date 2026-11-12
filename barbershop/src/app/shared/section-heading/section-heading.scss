@@ -1,0 +1,45 @@
+@use "partials/variables" as *;
+@use "partials/mixins" as *;
+
+:host {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-3;
+    margin-bottom: $space-6;
+    text-align: center;
+}
+
+:host(.align_start) {
+    align-items: flex-start;
+    text-align: left;
+}
+
+.eyebrow {
+    @include eyebrow;
+    display: inline-flex;
+    align-items: center;
+    gap: $space-3;
+
+    // Thin Brass Rule On Both Sides (Left Only When Start-Aligned)
+    &::before,
+    &::after {
+        content: "";
+        width: 24px;
+        height: 1px;
+        background-color: currentColor;
+    }
+
+    :host(.align_start) &::after {
+        display: none;
+    }
+}
+
+h2 {
+    font-size: $text-2xl;
+}
+
+.description {
+    max-width: 56ch;
+    color: $color-text-muted;
+}

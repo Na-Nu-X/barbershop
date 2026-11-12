@@ -1,5 +1,7 @@
 from django.db import models
 
+from .formatting import format_duration, format_price
+
 class BarbershopConfig(models.Model):
     is_force_closed = models.BooleanField(
         verbose_name="Je mimoriadne zatvorené", 
@@ -81,6 +83,14 @@ class Service(models.Model):
         null=False
     )
 
+    description = models.CharField(
+        verbose_name="Popis",
+        help_text="Krátky popis služby zobrazený v cenníku (voliteľné).",
+        max_length=200,
+        blank=True,
+        default=""
+    )
+
     duration = models.PositiveIntegerField(
         verbose_name="Čas trvania", 
         help_text="Čas trvania v minútach.",
@@ -101,7 +111,7 @@ class Service(models.Model):
         ordering = ["id"]
 
     def __str__(self):
-        return f"{self.title} ({self.duration} min) - {self.price / 100}€"
+        return f"{self.title} · {format_duration(self.duration)} · {format_price(self.price)}"
 
 class Appointment(models.Model):
     service = models.ForeignKey(
@@ -238,9 +248,10 @@ class Barber(models.Model):
 
     instagram = models.URLField(
         verbose_name="Instagram", 
-        help_text="Link k Instagram účtu.", 
-        max_length=200, 
-        null=True
+        help_text="Link k Instagram účtu (voliteľné).",
+        max_length=200,
+        null=True,
+        blank=True
     )
 
     is_active = models.BooleanField(
@@ -285,7 +296,7 @@ class PortfolioImage(models.Model):
 
     class Meta:
         verbose_name = "Obrázok portfólia"
-        verbose_name_plural = "Obrázoky portfólia"
+        verbose_name_plural = "Obrázky portfólia"
 
     def __str__(self):
         return f"Fotka - {self.barber.first_name}"

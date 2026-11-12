@@ -1,102 +1,274 @@
-@import "../../partials/variables";
+@use "sass:color";
+@use "partials/variables" as *;
+@use "partials/mixins" as *;
 
-footer {
-    position: relative;
+.site_footer {
+    background-color: $color-surface;
+    border-top: 1px solid $color-border;
+}
+
+.columns {
+    @include container;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $space-7;
+    padding-block: $space-8 $space-7;
+
+    @include media_up($bp-sm) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @include media_up($bp-lg) {
+        grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(0, 1fr));
+    }
+}
+
+.column_title {
+    margin-bottom: $space-4;
+    font-family: $font-body;
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
+    letter-spacing: $tracking-wider;
+    text-transform: uppercase;
+    color: $color-accent;
+}
+
+.muted {
+    color: $color-text-muted;
+    font-size: $text-sm;
+
+    a {
+        color: $color-text;
+    }
+}
+
+// Brand
+
+.brand {
     display: flex;
     flex-direction: column;
+    gap: $space-4;
+
+    .logo {
+        height: 44px;
+        width: auto;
+    }
+
+    .wordmark {
+        display: inline-flex;
+        align-items: center;
+        gap: $space-3;
+        font-family: $font-display;
+        font-size: $text-2xl;
+        font-weight: $weight-semibold;
+    }
+
+    .mark {
+        @include flex_center;
+        width: 40px;
+        height: 40px;
+        font-size: $text-sm;
+        color: $color-accent;
+        border: 1px solid color.adjust($color-accent, $alpha: -0.5);
+        border-radius: 50%;
+    }
+
+    .tagline {
+        font-family: $font-display;
+        font-style: italic;
+        color: $color-text-muted;
+    }
+}
+
+.social_media {
+    display: flex;
+    gap: $space-3;
+
+    a {
+        @include flex_center;
+        @include focus_ring;
+        width: 40px;
+        height: 40px;
+        color: $color-text-muted;
+        border: 1px solid $color-border-strong;
+        border-radius: 50%;
+        transition:
+            color $duration-fast $ease,
+            border-color $duration-fast $ease;
+
+        &:hover {
+            color: $color-accent;
+            border-color: $color-accent;
+        }
+    }
+}
+
+// Contact
+
+.contact_list {
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+    font-style: normal;
+    color: $color-text-muted;
+
+    p {
+        display: flex;
+        align-items: baseline;
+        gap: $space-3;
+    }
+
+    i {
+        width: 1em;
+        color: $color-accent;
+    }
+
+    a {
+        color: $color-text;
+        text-decoration: none;
+        overflow-wrap: anywhere;
+        transition: color $duration-fast $ease;
+
+        &:hover {
+            color: $color-accent;
+        }
+    }
+}
+
+// Opening Hours
+
+.hours {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    font-size: $text-sm;
+
+    .day {
+        display: flex;
+        justify-content: space-between;
+        gap: $space-4;
+        padding: $space-1 $space-2;
+        margin-inline: -$space-2;
+        border-radius: $radius-sm;
+        color: $color-text-muted;
+    }
+
+    dd {
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+    .closed dd {
+        color: $color-text-subtle;
+    }
+
+    .today {
+        color: $color-text;
+        background-color: color.adjust($color-accent, $alpha: -0.9);
+
+        dt {
+            font-weight: $weight-semibold;
+        }
+    }
+
+    .today_badge {
+        margin-left: $space-2;
+        padding: 0 $space-2;
+        font-size: $text-xs;
+        font-weight: $weight-semibold;
+        color: $color-on-accent;
+        background-color: $color-accent;
+        border-radius: $radius-pill;
+    }
+}
+
+.hours_skeleton {
+    display: block;
+    height: 14px;
+    margin-block: 6px;
+    border-radius: $radius-sm;
+    background-color: $color-surface-raised;
+}
+
+// Navigation
+
+.links {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    list-style: none;
+
+    a {
+        @include focus_ring(2px);
+        color: $color-text-muted;
+        text-decoration: none;
+        border-radius: $radius-sm;
+        transition: color $duration-fast $ease;
+
+        &:hover {
+            color: $color-accent;
+        }
+    }
+}
+
+// Bottom Bar
+
+.bottom_bar {
+    @include container;
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
+    justify-content: space-between;
+    gap: $space-4;
+    padding-block: $space-5;
+    border-top: 1px solid $color-border;
+
+    @include media_down($bp-sm) {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+.copyright {
+    font-size: $text-xs;
+    color: $color-text-subtle;
+}
+
+.payment_methods {
+    display: flex;
+    flex-wrap: wrap;
     justify-content: center;
-    gap: 20px;
-    min-height: 100vh;
-    margin-top: 20px;
-    text-align: center;
-    background: radial-gradient(circle, lighten($main-color, 10%) 0%, $main-color 100%);
-    z-index: 2000;
+    gap: $space-2;
 
-    h2 {
-        color: $secondary-color;
-        font-family: $heading-font;
-        font-size: clamp(2.5em, 5vw, 4em);
-    }
+    img {
+        height: 22px;
+        width: auto;
+        opacity: 0.6;
+        filter: grayscale(0.4);
+        transition: opacity $duration-fast $ease;
 
-    .address {
-        p {
-            color: darken($secondary-color, 40%);
+        &:hover {
+            opacity: 1;
         }
     }
+}
 
-    .contact_us {
-        p {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            color: $secondary-color;
+.back_to_top {
+    all: unset;
+    @include focus_ring(2px);
+    display: inline-flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
+    letter-spacing: $tracking-wide;
+    text-transform: uppercase;
+    color: $color-text-muted;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    transition: color $duration-fast $ease;
 
-            i {
-                font-size: 1em;
-            }
-
-            a {
-                text-decoration: none;
-                color: darken($secondary-color, 40%);
-
-                font: {
-                    size: 0.9em;
-                    style: italic;
-                }
-
-                &:hover,
-                &:active {
-                    text-decoration: underline;
-                    cursor: pointer;
-                }
-            }
-        }
-    }
-
-    .social_media {
-        a {
-            display: inline-block;
-            margin: 0px 5px;
-            color: $secondary-color;
-            transition: transform 0.3s ease;
-
-            &:hover {
-                transform: scale(1.1);
-                cursor: pointer;
-            }
-
-            i {
-                font-size: 2em;
-            }
-        }
-    }
-
-    .payment_methods {
-        .icons {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            height: 32px;
-            
-            img {
-                opacity: 0.8;
-            }
-        }
-    }
-
-    .other {
-        color: darken($secondary-color, 40%);
-
-        .copywrite {
-            color: darken($secondary-color, 40%);
-
-            font: {
-                family: $copywrite-font;
-                size: 0.8em;
-            }
-        }
+    &:hover {
+        color: $color-accent;
     }
 }

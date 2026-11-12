@@ -1,13 +1,50 @@
-<nav class="navigation_bar">
-    <div class="navigation_container">
-        <button class="hamburger" (click)="toggleMenu()">
-            <i class="fa-solid" [class.fa-bars]="!is_open" [class.fa-xmark]="is_open"></i> <!-- https://fontawesome.com/icons/bars / https://fontawesome.com/icons/magnifying-glass -->
+<header class="site_header" [class.scrolled]="is_scrolled() || is_open()">
+    <div class="bar">
+        <!-- Brand -->
+        <a class="brand" href="/" [attr.aria-label]="site.name + ' – na začiatok stránky'" (click)="navigate($event, null)">
+            @if (site.logo) {
+                <img class="brand_logo" [src]="site.logo" [alt]="site.name">
+            } @else {
+                <span class="brand_mark" aria-hidden="true"><i class="fa-solid fa-scissors"></i></span> <!-- https://fontawesome.com/icons/scissors -->
+                <span class="brand_name">{{ site.name }}</span>
+            }
+        </a>
+
+        <!-- Desktop Navigation -->
+        <nav class="desktop_nav" aria-label="Hlavná navigácia">
+            <ul>
+                @for (link of links; track link.section) {
+                    <li><a [href]="'#' + link.section" (click)="navigate($event, link.section)">{{ link.label }}</a></li>
+                }
+            </ul>
+        </nav>
+
+        <a appButton size="sm" class="desktop_cta" href="#booking" (click)="navigate($event, 'booking')">Rezervovať</a>
+
+        <!-- Mobile Menu Toggle -->
+        <button #menu_toggle class="menu_toggle" type="button" aria-controls="mobile_menu" [class.open]="is_open()" [attr.aria-expanded]="is_open()" [attr.aria-label]="is_open() ? 'Zavrieť menu' : 'Otvoriť menu'" (click)="toggleMenu()">
+            <span></span>
+            <span></span>
         </button>
-    
-        <ul [class.open]="is_open">
-            <li><a href="/">Domov</a></li>
-            <li (click)="scrollTo('.booking_container')"><a>Rezervácia</a></li>
-            <li (click)="scrollTo('.contact_form')"><a>Kontakt</a></li>
-        </ul>
     </div>
-</nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile_menu" id="mobile_menu" [class.open]="is_open()" [attr.inert]="is_open() ? null : ''">
+        <nav aria-label="Mobilná navigácia">
+            <ul>
+                @for (link of links; track link.section; let index = $index) {
+                    <li [style.--index]="index"><a [href]="'#' + link.section" (click)="navigate($event, link.section)">{{ link.label }}</a></li>
+                }
+            </ul>
+        </nav>
+
+        <div class="mobile_footer">
+            <a appButton block size="lg" href="#booking" (click)="navigate($event, 'booking')">Rezervovať termín</a>
+
+            <div class="mobile_contact">
+                <a [href]="'tel:' + site.contact.phone"><i class="fa-solid fa-phone" aria-hidden="true"></i> {{ site.contact.phone_display }}</a>
+                <p><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ site.address.street }}, {{ site.address.city }}</p>
+            </div>
+        </div>
+    </div>
+</header>
