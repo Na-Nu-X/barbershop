@@ -1,25 +1,108 @@
-<section class="barbers" id="barbers">
-    <app-section-heading eyebrow="Tím" title="Naši barberi" />
+<section class="barbers" id="barbers" aria-labelledby="barbers_title">
+    <app-section-heading
+        headingId="barbers_title"
+        eyebrow="Tím"
+        title="Naši barberi"
+        description="Skúsené ruky, ktoré presne vedia, čo robia. Pozrite si ich prácu."
+    />
 
-    <div class="barbers_container">
-        <div class="one_barber" *ngFor="let one_barber of barbers">
-            <div class="header">
-                <img class="profile_picture" alt="Profilový obrázok" [src]="one_barber.profile_picture || 'assets/default-avatar.png'">
+    @switch (state()) {
+        @case ("loading") {
+            <div class="barbers_grid" aria-busy="true" aria-label="Načítavam barberov">
+                @for (placeholder of [1, 2, 3]; track placeholder) {
+                    <div class="barber_card skeleton" aria-hidden="true">
+                        <div class="portrait"></div>
+                    </div>
+                }
+            </div>
+        }
 
-                <div class="info">
-                    <h3 class="name">{{ one_barber.nickname || one_barber.first_name }}</h3>
+        @case ("error") {
+            <div class="notice" role="alert">
+                <p>Tím sa nepodarilo načítať.</p>
+                <button appButton variant="secondary" size="sm" type="button" (click)="loadBarbers()">Skúsiť znova</button>
+            </div>
+        }
 
-                    <a class="instagram" target="_blank" [href]="one_barber.instagram" *ngIf="one_barber.instagram">
-                        <i class="fa-brands fa-instagram"></i> Instagram <!-- https://fontawesome.com/icons/instagram -->
-                    </a>
+        @case ("ready") {
+            @if (barbers().length > 0) {
+                <ul class="barbers_grid">
+                    @for (barber of barbers(); track barber.id) {
+                        <li class="barber_card">
+                            <!-- Portrait With The Name Overlaid -->
+                            <div class="portrait">
+                                @if (barber.profile_picture) {
+                                    <img [src]="barber.profile_picture" [alt]="'Portrét – ' + displayName(barber)" loading="lazy">
+                                } @else {
+                                    <span class="initials" aria-hidden="true">{{ initials(barber) }}</span>
+                                }
+
+                                <div class="name">
+                                    <h3>{{ displayName(barber) }}</h3>
+                                    @if (barber.nickname && barber.nickname !== barber.first_name) {
+                                        <p>{{ barber.first_name }}</p>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="body">
+                                @if (barber.bio) {
+                                    <p class="bio">{{ barber.bio }}</p>
+                                }
+
+                                @if (barber.portfolio.length > 0) {
+                                    <div class="portfolio">
+                                        @for (image of barber.portfolio.slice(0, preview_count); track image; let index = $index, last = $last) {
+                                            <button type="button" class="thumb" [attr.aria-label]="'Zobraziť prácu ' + (index + 1) + ' – ' + displayName(barber)" (click)="openLightbox(barber, index)">
+                                                <img [src]="image" alt="" loading="lazy">
+
+                                                @if (last && barber.portfolio.length > preview_count) {
+                                                    <span class="more" aria-hidden="true">+{{ barber.portfolio.length - preview_count }}</span>
+                                                }
+                                            </button>
+                                        }
+                                    </div>
+                                }
+
+                                @if (barber.instagram) {
+                                    <a class="instagram" [href]="barber.instagram" target="_blank" rel="noopener">
+                                        <i class="fa-brands fa-instagram" aria-hidden="true"></i> Instagram <!-- https://fontawesome.com/icons/instagram -->
+                                        <span class="visually_hidden">– {{ displayName(barber) }} (otvorí sa v novom okne)</span>
+                                    </a>
+                                }
+                            </div>
+                        </li>
+                    }
+                </ul>
+            } @else {
+                <div class="notice">
+                    <p>Predstavenie tímu pripravujeme.</p>
                 </div>
-            </div>
+            }
+        }
+    }
 
-            <p class="bio" *ngIf="one_barber.bio">{{ one_barber.bio }}</p>
+    <!-- Portfolio Lightbox -->
+    <dialog #lightbox_dialog class="lightbox" aria-label="Portfólio" (close)="onDialogClose()" (click)="onDialogClick($event)">
+        @if (lightbox(); as current) {
+            <figure>
+                <img [src]="lightbox_image()" [alt]="'Práca – ' + displayName(current.barber)">
+                <figcaption>{{ displayName(current.barber) }} · {{ current.index + 1 }} / {{ current.barber.portfolio.length }}</figcaption>
+            </figure>
 
-            <div class="portfolio_grid" *ngIf="one_barber.portfolio.length > 0">
-                <img class="portfolio_image" alt="Práca barbera" [src]="one_image" *ngFor="let one_image of one_barber.portfolio">
-            </div>
-        </div>
-    </div>
+            <button type="button" class="lightbox_button close" aria-label="Zavrieť" (click)="closeLightbox()">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+
+            @if (current.barber.portfolio.length > 1) {
+                <button type="button" class="lightbox_button prev" aria-label="Predchádzajúca fotka" (click)="moveLightbox(-1)">
+                    <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                </button>
+
+                <button type="button" class="lightbox_button next" aria-label="Ďalšia fotka" (click)="moveLightbox(1)">
+                    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                </button>
+            }
+        }
+    </dialog>
 </section>
