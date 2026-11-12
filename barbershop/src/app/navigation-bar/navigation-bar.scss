@@ -1,16 +1,17 @@
-@import "../../partials/variables";
-@import "../../partials/mixins";
+@use "sass:color";
+@use "partials/variables" as *;
+@use "partials/mixins" as *;
 
 .navigation_bar {
     position: fixed;
     top: 10px;
     left: 10px;
     right: 10px;
-    background-color: transparentize($black-color, 0.8);
+    background-color: color.adjust($black-color, $alpha: -0.8);
     backdrop-filter: blur(5px);
-    border: 1px solid transparentize($black-color, 0.6);
+    border: 1px solid color.adjust($black-color, $alpha: -0.6);
     border-radius: $small-border-radius;
-    box-shadow: 0px 2px 10px transparentize($main-color, 0.95);
+    box-shadow: 0px 2px 10px color.adjust($main-color, $alpha: -0.95);
     z-index: 1000;
 
     .navigation_container {
@@ -27,7 +28,7 @@
         display: none;
         height: 60px;
         font-size: 2em;
-        color: darken($secondary-color, 10%);
+        color: color.adjust($secondary-color, $lightness: -10%);
         cursor: pointer;
     }
 
@@ -45,7 +46,7 @@
             a {
                 display: block;
                 padding: 10px 15px;
-                color: darken($secondary-color, 10%);
+                color: color.adjust($secondary-color, $lightness: -10%);
                 text-decoration: none;
                 text-transform: uppercase;
                 font-weight: bold;
@@ -84,8 +85,8 @@
             gap: 0px;
             width: 100%;
             height: auto;
-            background-color: transparentize($black-color, 0.8);
-            border-top: 1px solid transparentize($black-color, 0.8);
+            background-color: color.adjust($black-color, $alpha: -0.8);
+            border-top: 1px solid color.adjust($black-color, $alpha: -0.8);
 
             &.open {
                 display: flex; 
@@ -100,7 +101,7 @@
                     border-bottom: none;
                     
                     &:hover {
-                        background-color: transparentize($black-color, 0.9);
+                        background-color: color.adjust($black-color, $alpha: -0.9);
                         transform: translateY(0);
                     }
                 }

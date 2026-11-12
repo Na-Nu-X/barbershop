@@ -1,5 +1,6 @@
-@import "../../partials/variables";
-@import "../../partials/mixins";
+@use "sass:color";
+@use "partials/variables" as *;
+@use "partials/mixins" as *;
 
 .booking_container {
     display: flex;
@@ -12,7 +13,7 @@
     padding: 20px;
     background-color: $secondary-color;
     border-radius: $medium-border-radius;
-    box-shadow: 0 4px 6px transparentize($main-color, 0.92), 0 2px 4px transparentize($main-color, 0.95);
+    box-shadow: 0 4px 6px color.adjust($main-color, $alpha: -0.92), 0 2px 4px color.adjust($main-color, $alpha: -0.95);
 
     h2 {
         margin-bottom: 5px;
@@ -60,7 +61,7 @@
                 
                 &:hover, 
                 &.selected {
-                    background-color: transparentize($green-color, 0.4);
+                    background-color: color.adjust($green-color, $alpha: -0.4);
                     color: $secondary-color;
                     border-color: $green-color;
                     box-shadow: 0 0 5px $secondary-color;
@@ -74,7 +75,7 @@
             }
             
             &.booked {
-                background-color: transparentize($red-color, 0.8);
+                background-color: color.adjust($red-color, $alpha: -0.8);
                 color: $red-color;
                 border: 1px solid $red-color;
                 cursor: not-allowed;

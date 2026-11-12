@@ -1,4 +1,5 @@
-@import "./variables";
+@use "sass:color";
+@use "variables" as *;
 
 /***************
  General Mixins
@@ -24,7 +25,7 @@
     width: $size;
     height: $size;
     font-size: $size;
-    color: darken($secondary-color, 20%);
+    color: color.adjust($secondary-color, $lightness: -20%);
     border-radius: 50%;
     transition: opacity 1s ease, visibility 1s ease;
     animation: preloaderSpin 1s infinite linear;
@@ -117,19 +118,19 @@
 
     &:hover {
         transform: translateY(-2px);
-        background-color: lighten($black-color, 10%);
-        box-shadow: 0 5px 15px transparentize($black-color, 0.8);
+        background-color: color.adjust($black-color, $lightness: 10%);
+        box-shadow: 0 5px 15px color.adjust($black-color, $alpha: -0.8);
     }
     
     &:active {
         transform: translateY(0);
-        box-shadow: 0 2px 5px transparentize($black-color, 0.8);
+        box-shadow: 0 2px 5px color.adjust($black-color, $alpha: -0.8);
     }
     
     &:disabled {
         opacity: 0.6;
         transform: none;
-        background-color: transparentize($black-color, 0.4);
+        background-color: color.adjust($black-color, $alpha: -0.4);
         box-shadow: none;
         cursor: not-allowed;
     }
@@ -156,21 +157,21 @@
     
     &:hover {
         transform: translateY(-2px);
-        background-color: transparentize($gray-color, 0.8); 
-        box-shadow: 0 6px 15px transparentize($black-color, 0.9);
+        background-color: color.adjust($gray-color, $alpha: -0.8); 
+        box-shadow: 0 6px 15px color.adjust($black-color, $alpha: -0.9);
     }
     
     &:active {
         transform: translateY(0);
         box-shadow: none;
-        background-color: transparentize($gray-color, 0.6);
+        background-color: color.adjust($gray-color, $alpha: -0.6);
     }
     
     &:disabled {
         opacity: 0.4;
         transform: none;
-        border-color: transparentize($black-color, 0.6);
-        color: transparentize($black-color, 0.6);
+        border-color: color.adjust($black-color, $alpha: -0.6);
+        color: color.adjust($black-color, $alpha: -0.6);
         box-shadow: none;
         cursor: not-allowed;
     }
@@ -232,31 +233,31 @@
 @mixin form_input {
     width: 100%;
     padding: 10px 15px;
-    background-color: darken($secondary-color, 3%);
-    color: transparentize($main-color, 0.4);
-    border: 1px solid darken($secondary-color, 10%);
+    background-color: color.adjust($secondary-color, $lightness: -3%);
+    color: color.adjust($main-color, $alpha: -0.4);
+    border: 1px solid color.adjust($secondary-color, $lightness: -10%);
     border-radius: $small-border-radius;
     font-family: inherit;
     outline: none;
     transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 
     &::placeholder {
-        color: darken($secondary-color, 40%);
+        color: color.adjust($secondary-color, $lightness: -40%);
     }
 
     &:focus-visible {
         background-color: $secondary-color;
         border-color: $black-color;
-        box-shadow: 0 0 0 3px transparentize($black-color, 0.8);
+        box-shadow: 0 0 0 3px color.adjust($black-color, $alpha: -0.8);
     }
 
     &:-webkit-autofill {
-        -webkit-text-fill-color: transparentize($main-color, 0.4);
+        -webkit-text-fill-color: color.adjust($main-color, $alpha: -0.4);
         transition: width 0.3s ease, background-color 9999s ease;
 
         &:hover,
         &:focus {
-            -webkit-text-fill-color: transparentize($main-color, 0.4);
+            -webkit-text-fill-color: color.adjust($main-color, $alpha: -0.4);
             transition: width 0.3s ease, background-color 9999s ease;
         }
     }
@@ -286,17 +287,17 @@
     }
 
     &::-webkit-scrollbar-thumb {
-        background: darken($secondary-color, 10%);
+        background: color.adjust($secondary-color, $lightness: -10%);
         border-radius: 2.5px;
 
         &:hover {
-            background-color: darken($secondary-color, 20%);
+            background-color: color.adjust($secondary-color, $lightness: -20%);
             cursor: pointer;
         }
     }
 
     &::-webkit-scrollbar-track {
-        background: darken($secondary-color, 5%);
+        background: color.adjust($secondary-color, $lightness: -5%);
         border-radius: 2.5px;
     }
 }
@@ -333,9 +334,9 @@
         width: 100%;
         height: 40px;
         padding: 0px 15px;
-        color: transparentize($main-color, 0.4);
-        background-color: darken($secondary-color, 3%);
-        border: 1px solid darken($secondary-color, 10%);
+        color: color.adjust($main-color, $alpha: -0.4);
+        background-color: color.adjust($secondary-color, $lightness: -3%);
+        border: 1px solid color.adjust($secondary-color, $lightness: -10%);
         border-radius: $small-border-radius;
         transition: border 0.3s ease, box-shadow 0.3s ease;
 
@@ -343,7 +344,7 @@
         &:focus-visible {
             background-color: $secondary-color;
             border-color: $black-color;
-            box-shadow: 0 0 0 3px transparentize($black-color, 0.8);
+            box-shadow: 0 0 0 3px color.adjust($black-color, $alpha: -0.8);
 
             .fa-angle-down,
             .fa-angle-up {
@@ -355,14 +356,14 @@
             @include crop_text;
             
             i {
-                color: transparentize($main-color, 0.4);
+                color: color.adjust($main-color, $alpha: -0.4);
                 margin-right: 8.5px;
             }
         }
 
         .fa-angle-down,
         .fa-angle-up {
-            color: transparentize($main-color, 0.4);
+            color: color.adjust($main-color, $alpha: -0.4);
             transition: color 0.3s ease,
         }
     }
@@ -374,7 +375,7 @@
         height: 0px;
         margin-top: 10px;
         color: $secondary-color;
-        background-color: transparentize($main-color, 0.2);
+        background-color: color.adjust($main-color, $alpha: -0.2);
         border-radius: $small-border-radius;
         overflow-y: $scrollbar;
         transition: height 0.3s ease;
@@ -401,7 +402,7 @@
             &:hover,
             &:focus-visible,
             &.selected {
-                background-color: transparentize($secondary-color, 0.9);
+                background-color: color.adjust($secondary-color, $alpha: -0.9);
                 color: $secondary-color;
             }
 

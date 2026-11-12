@@ -1,4 +1,5 @@
-@import "../../partials/variables";
+@use "sass:color";
+@use "partials/variables" as *;
 
 footer {
     position: relative;
@@ -10,7 +11,7 @@ footer {
     min-height: 100vh;
     margin-top: 20px;
     text-align: center;
-    background: radial-gradient(circle, lighten($main-color, 10%) 0%, $main-color 100%);
+    background: radial-gradient(circle, color.adjust($main-color, $lightness: 10%) 0%, $main-color 100%);
     z-index: 2000;
 
     h2 {
@@ -21,7 +22,7 @@ footer {
 
     .address {
         p {
-            color: darken($secondary-color, 40%);
+            color: color.adjust($secondary-color, $lightness: -40%);
         }
     }
 
@@ -38,7 +39,7 @@ footer {
 
             a {
                 text-decoration: none;
-                color: darken($secondary-color, 40%);
+                color: color.adjust($secondary-color, $lightness: -40%);
 
                 font: {
                     size: 0.9em;
@@ -88,10 +89,10 @@ footer {
     }
 
     .other {
-        color: darken($secondary-color, 40%);
+        color: color.adjust($secondary-color, $lightness: -40%);
 
         .copywrite {
-            color: darken($secondary-color, 40%);
+            color: color.adjust($secondary-color, $lightness: -40%);
 
             font: {
                 family: $copywrite-font;

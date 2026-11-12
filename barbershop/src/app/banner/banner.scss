@@ -1,5 +1,6 @@
-@import "../../partials/variables";
-@import "../../partials/mixins";
+@use "sass:color";
+@use "partials/variables" as *;
+@use "partials/mixins" as *;
 
 .banner {
     display: flex;
@@ -22,7 +23,7 @@
     > p:first-of-type {
         max-width: 600px;
         font-size: 1.2em;
-        color: transparentize($main-color, 0.4);
+        color: color.adjust($main-color, $alpha: -0.4);
     }
 
     .buttons {

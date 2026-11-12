@@ -1,5 +1,6 @@
-@import "../../partials/variables";
-@import "../../partials/mixins";
+@use "sass:color";
+@use "partials/variables" as *;
+@use "partials/mixins" as *;
 
 .contact_form {
     display: flex;
@@ -10,7 +11,7 @@
     padding: 20px;
     background-color: $secondary-color;
     border-radius: $medium-border-radius;
-    box-shadow: 0 4px 6px transparentize($main-color, 0.92), 0 2px 4px transparentize($main-color, 0.95);
+    box-shadow: 0 4px 6px color.adjust($main-color, $alpha: -0.92), 0 2px 4px color.adjust($main-color, $alpha: -0.95);
 
     h2 {
         margin-bottom: 5px;
