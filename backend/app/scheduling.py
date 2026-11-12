@@ -115,3 +115,19 @@ def get_day_schedule(day: date, service: Service, now: datetime | None = None) -
         start += SLOT_INTERVAL_MINUTES
 
     return DaySchedule(is_closed=False, slots=slots)
+
+
+def ensure_slot_bookable(day: date, start: time, service: Service, now: datetime | None = None) -> None:
+    """Raises BookingError unless `start` is an offered, still free slot for `service` on `day`."""
+    schedule = get_day_schedule(day, service, now)
+
+    if schedule.is_closed:
+        raise BookingError("V tento deň máme zatvorené.")
+
+    slot = next((one_slot for one_slot in schedule.slots if one_slot.start == start), None)
+
+    if slot is None:
+        raise BookingError("Zvolený čas nie je možné rezervovať. Vyberte si, prosím, iný.")
+
+    if not slot.is_available:
+        raise BookingError("Tento termín bol práve obsadený. Vyberte si, prosím, iný.", status=409)

@@ -1,4 +1,5 @@
 import json
+import re
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -7,8 +8,9 @@ from rest_framework.views import csrf_exempt
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.utils import timezone
+from django.db import transaction
 from .models import Service, Appointment, ContactMessage, BarbershopConfig, OpeningHour, Barber
-from .scheduling import BookingError, get_day_schedule
+from .scheduling import BookingError, ensure_slot_bookable, get_day_schedule
 
 @csrf_exempt
 def getStatus(request):
@@ -172,57 +174,81 @@ def getAvailableSlots(request):
         ],
     }, status=200)
 
+PHONE_NUMBER_PATTERN = re.compile(r"^\+?[0-9][0-9 ()/-]{5,18}$") # e.g. "+421 900 123 456", "0900/123 456"
+
 @api_view(["POST"])
 def createAppointment(request):
-    customer = request.data.get("customer") # Gets The Customer's Data
-    first_name = customer.get("first_name") # Gets The Customer's First Name
-    last_name = customer.get("last_name") # Gets The Customer's Last Name
-    phone_number = customer.get("phone_number") # Gets The Customer's Phone Number
-    service_id = request.data.get("service_id") # Gets The Service ID
-    time_start = request.data.get("time_start") # Gets The Time Start
-    date = request.data.get("date") # Gets The Date
+    data = request.data if isinstance(request.data, dict) else {} # Gets The Request Data
+    customer = data.get("customer") if isinstance(data.get("customer"), dict) else {} # Gets The Customer's Data
+
+    first_name = str(customer.get("first_name") or "").strip() # Gets The Customer's First Name
+    last_name = str(customer.get("last_name") or "").strip() # Gets The Customer's Last Name
+    phone_number = str(customer.get("phone_number") or "").strip() # Gets The Customer's Phone Number
+    service_id = data.get("service_id") # Gets The Service ID
+    time_start = data.get("time_start") # Gets The Time Start
+    date = data.get("date") # Gets The Date
 
     # Checks If All Data Exist
-    if not all([customer, first_name, last_name, phone_number, service_id, time_start, date]):
+    if not all([first_name, last_name, phone_number, service_id, time_start, date]):
         return JsonResponse({
             "success": False,
             "message": "Všetky polia sú povinné."
         }, status=400)
 
-    try:
-        service = Service.objects.get(id=service_id) # Gets The Service
-        chosen_time = datetime.strptime(time_start, '%H:%M').time() # Gets The Chosen Time
-        chosen_date = datetime.strptime(date, '%Y-%m-%d').date() # Gets The Chosen Date
+    # Checks The Lengths Allowed By The Database
+    if len(first_name) > 20 or len(last_name) > 50:
+        return JsonResponse({
+            "success": False,
+            "message": "Meno môže mať najviac 20 a priezvisko najviac 50 znakov."
+        }, status=400)
 
-    except(Service.DoesNotExist):
+    if not PHONE_NUMBER_PATTERN.match(phone_number):
+        return JsonResponse({
+            "success": False,
+            "message": "Zadajte, prosím, platné telefónne číslo."
+        }, status=400)
+
+    try:
+        service = Service.objects.get(id=int(service_id)) # Gets The Service
+
+    except (TypeError, ValueError, Service.DoesNotExist):
         return JsonResponse({
             "success": False,
             "message": "Zvolená služba neexistuje."
         }, status=400)
 
-    except(ValueError):
+    try:
+        chosen_time = datetime.strptime(str(time_start), "%H:%M").time() # Gets The Chosen Time
+        chosen_date = datetime.strptime(str(date), "%Y-%m-%d").date() # Gets The Chosen Date
+
+    except ValueError:
         return JsonResponse({
             "success": False,
-            "message": "Neplatný formát času."
+            "message": "Neplatný formát dátumu alebo času."
         }, status=400)
 
-    is_booked = Appointment.objects.filter(date=chosen_date, time_start=chosen_time).exists() # Checks If The Appointment Is Already Booked
+    try:
+        with transaction.atomic():
+            # Locks That Weekday's Opening Hours Row So Two Simultaneous Requests Cannot Book Overlapping Times (PostgreSQL)
+            list(OpeningHour.objects.select_for_update().filter(day_of_week=chosen_date.isoweekday()))
 
-    if is_booked:
+            ensure_slot_bookable(chosen_date, chosen_time, service) # Checks Opening Hours, Duration And Overlaps
+
+            # Creates The New Appointment
+            Appointment.objects.create(
+                service=service,
+                first_name=first_name,
+                last_name=last_name,
+                phone_number=phone_number,
+                date=chosen_date,
+                time_start=chosen_time
+            )
+
+    except BookingError as error:
         return JsonResponse({
             "success": False,
-            "message": "Tento termín bol práve obsadený. Vyberte si, prosím, iný."
-        }, status=400)
-
-    # Creates The New Appointment
-    Appointment.objects.create(
-        service=service,
-        first_name=first_name,
-        last_name=last_name,
-        phone_number=phone_number,
-        date=chosen_date,
-        time_start=chosen_time
-    )
+            "message": error.message
+        }, status=error.status)
 
     return Response({
         "success": True,
