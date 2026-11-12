@@ -4,7 +4,7 @@ export type SectionHeadingAlign = "center" | "start"
 
 /*
  Consistent Section Title Block
- Usage: <app-section-heading eyebrow="Rezervácia" title="Vyberte si termín" description="..." />
+ Usage: <app-section-heading eyebrow="Rezervácia" title="Vyberte si termín" description="..." headingId="booking_title" />
 */
 @Component({
   selector: "app-section-heading",
@@ -19,4 +19,5 @@ export class SectionHeading {
   readonly eyebrow = input<string>() // Small Label Above The Title
   readonly description = input<string>() // Supporting Text Below The Title
   readonly align = input<SectionHeadingAlign>("center")
+  readonly headingId = input<string>() // Lets The Parent <section> Reference The Title Via aria-labelledby
 }

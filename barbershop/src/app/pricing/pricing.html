@@ -1,0 +1,67 @@
+<section class="pricing" id="services" aria-labelledby="services_title">
+    <app-section-heading
+        headingId="services_title"
+        eyebrow="Služby"
+        title="Služby a cenník"
+        description="Férové ceny bez prekvapení. Vyberte si službu a rezervujte si termín, ktorý vám vyhovuje."
+    />
+
+    @switch (state()) {
+        <!-- Loading: Skeleton Cards Keep The Layout Stable -->
+        @case ("loading") {
+            <div class="services_grid" aria-busy="true" aria-label="Načítavam služby">
+                @for (skeleton of skeletons; track skeleton) {
+                    <div class="service_card skeleton" aria-hidden="true">
+                        <span class="line title"></span>
+                        <span class="line meta"></span>
+                        <span class="line text"></span>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Error -->
+        @case ("error") {
+            <div class="notice" role="alert">
+                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> <!-- https://fontawesome.com/icons/triangle-exclamation -->
+                <p>Cenník sa nepodarilo načítať.</p>
+                <button appButton variant="secondary" size="sm" type="button" (click)="loadServices()">Skúsiť znova</button>
+            </div>
+        }
+
+        <!-- Loaded -->
+        @case ("ready") {
+            @if (services().length > 0) {
+                <ul class="services_grid">
+                    @for (service of services(); track service.id) {
+                        <li class="service_card">
+                            <div class="card_head">
+                                <h3>{{ service.title }}</h3>
+                                <span class="leader" aria-hidden="true"></span>
+                                <p class="price"><span class="visually_hidden">Cena: </span>{{ service.price | euro }}</p>
+                            </div>
+
+                            <p class="meta">
+                                <i class="fa-regular fa-clock" aria-hidden="true"></i> <!-- https://fontawesome.com/icons/clock -->
+                                <span class="visually_hidden">Trvanie: </span>{{ service.duration | duration }}
+                            </p>
+
+                            @if (service.description) {
+                                <p class="description">{{ service.description }}</p>
+                            }
+
+                            <button appButton variant="ghost" size="sm" type="button" class="book" [attr.aria-label]="'Rezervovať: ' + service.title" (click)="book(service)">
+                                Rezervovať <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                            </button>
+                        </li>
+                    }
+                </ul>
+            } @else {
+                <div class="notice">
+                    <i class="fa-regular fa-clipboard" aria-hidden="true"></i> <!-- https://fontawesome.com/icons/clipboard -->
+                    <p>Cenník práve pripravujeme. Pre informácie o službách nás neváhajte kontaktovať.</p>
+                </div>
+            }
+        }
+    }
+</section>

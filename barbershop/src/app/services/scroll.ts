@@ -1,7 +1,7 @@
 import { Injectable, DOCUMENT, inject } from "@angular/core"
 
 // IDs Of The Page Sections That Can Be Scrolled To
-export type SectionId = "booking" | "barbers" | "contact"
+export type SectionId = "services" | "booking" | "barbers" | "contact"
 
 @Injectable({
   providedIn: "root"
