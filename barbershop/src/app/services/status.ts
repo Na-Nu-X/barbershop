@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core"
+import { Injectable, inject } from "@angular/core"
 import { HttpClient } from "@angular/common/http"
 import { Observable } from "rxjs"
 import { apiUrl } from "../config/api"
@@ -18,12 +18,10 @@ export interface StatusResponse {
     providedIn: "root"
 })
 export class Status {
-    private api_url:string = apiUrl("get-status/") // Connection To The Back-End API
+    private readonly http = inject(HttpClient)
 
-    constructor(private http: HttpClient) { }
-
-    // Method For Send The Message
+    // Method For Get Whether The Shop Is Open Right Now
     getStatus():Observable<StatusResponse> {
-        return this.http.get<StatusResponse>(this.api_url) // Returns The Data
+        return this.http.get<StatusResponse>(apiUrl("get-status/"))
     }
 }

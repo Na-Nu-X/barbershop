@@ -72,7 +72,7 @@ $space-8: 4rem;     // 64px
 $space-9: 6rem;     // 96px
 $space-10: 8rem;    // 128px
 
-$section-padding: clamp(#{$space-8}, 10vw, #{$space-10});
+$section-padding: clamp(#{$space-7}, 7vw, #{$space-9}); // Adjacent Sections Add Up, So Each Side Stays Moderate
 
 // Layout
 
