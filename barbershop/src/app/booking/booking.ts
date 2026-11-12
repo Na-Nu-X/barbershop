@@ -1,226 +1,64 @@
-import { ChangeDetectorRef, Component, effect, inject } from "@angular/core"
-import { Booking as BookingService } from "../services/booking"
-import { Toast } from "../services/toast"
-import { BookingDraft } from "../services/booking-draft"
-import { CommonModule } from "@angular/common"
-import { FormsModule } from "@angular/forms"
+import { Component, ElementRef, Injector, afterNextRender, computed, effect, inject, untracked, viewChild } from "@angular/core"
+import { BookingStep, BookingStore } from "./booking-store"
+import { ServiceStep } from "./service-step/service-step"
+import { DatetimeStep } from "./datetime-step/datetime-step"
+import { DetailsStep } from "./details-step/details-step"
+import { BookingSummary } from "./booking-summary/booking-summary"
 import { Button } from "../shared/button/button"
 import { SectionHeading } from "../shared/section-heading/section-heading"
-import { EuroPipe } from "../shared/pipes/euro.pipe"
+import { formatShortDate } from "./date-utils"
+import { SITE_CONFIG } from "../config/site.config"
 
-import type { Service } from "../services/booking"
-
-export interface Customer {
-  first_name:string,
-  last_name:string,
-  phone_number:string
+interface StepInfo {
+  number:BookingStep,
+  label:string,
+  title:string, // Heading Shown Above The Step Content
+  summary:string|null // The Choice Made In That Step, Shown In The Stepper
 }
 
 @Component({
   selector: "app-booking",
-  imports: [CommonModule, FormsModule, Button, SectionHeading, EuroPipe],
+  imports: [ServiceStep, DatetimeStep, DetailsStep, BookingSummary, Button, SectionHeading],
+  providers: [BookingStore],
   templateUrl: "./booking.html",
   styleUrl: "./booking.scss",
 })
 export class Booking {
-  private readonly ToastService = inject(Toast)
-  private readonly BookingDraftService = inject(BookingDraft)
+  protected readonly store = inject(BookingStore)
+  protected readonly site = SITE_CONFIG
 
-  services:Service[] = [] // Stores All Available Services
-  service_id:number|null = null // Stores The Service ID
-  selected_service:string = "" // Stores The Selected Service
-  is_services_select_menu_open:boolean = false // Stores The Information If The Services Select Menu Is Open
+  private readonly injector = inject(Injector)
+  private readonly step_heading = viewChild<ElementRef<HTMLElement>>("step_heading")
 
-  slots_data:{
-    slot:string,
-    is_available:boolean
-  }[] = [] // Stores The Available Slots
+  protected readonly steps = computed<StepInfo[]>(() => {
+    const date:string|null = this.store.date()
+    const time:string|null = this.store.time()
 
-  selected_slot:string|null = null // Stores The Selected Slot
-  selected_date:string = "" // Stores The Selected Date
+    return [
+      { number: 1, label: "Služba", title: "Vyberte si službu", summary: this.store.service()?.title ?? null },
+      { number: 2, label: "Termín", title: "Vyberte si dátum a čas", summary: date && time ? `${formatShortDate(date)} · ${time}` : null },
+      { number: 3, label: "Údaje", title: "Vaše kontaktné údaje", summary: null }
+    ]
+  })
 
-  // Stores The Customer's Data
-  customer:Customer = {
-    first_name: "",
-    last_name: "",
-    phone_number: ""
-  }
+  protected readonly current = computed<StepInfo>(() => this.steps()[this.store.step() - 1])
 
-  min_date: string = "" // Stores The Minimum Date
-  max_date: string = "" // Stores The Maximum Date
+  constructor() {
+    afterNextRender(() => this.store.load()) // Services And Opening Hours Are Always Loaded Fresh In The Browser
 
-  // Method Which Executes In Beginning
-  ngOnInit():void {
-    const today:Date = new Date() // Gets The Today's Date
-    const _3_months_later:Date = new Date() // Stores The 3 Months Later Date
+    // Moves Keyboard / Screen-Reader Focus To The New Step's Heading (Not On The First Render)
+    let is_first_run:boolean = true
 
-    this.min_date = this.formatDate(today) // Sets The Minimum Date
-
-    _3_months_later.setMonth(today.getMonth() + 3) // Gets The 3 Months Later Date
-    this.max_date = this.formatDate(_3_months_later) // Sets The Maximum Date
-
-    // Gets The Available Services
-    this.BookingService.getAvailableServices().subscribe({
-      next:(response) => {
-        if(response && response.success) {
-          this.services = response.services // Sets The Services
-
-          // Defaults To The First Service Unless One Was Already Picked In The Price List
-          if(this.service_id === null && this.services.length > 0) {
-            this.service_id = this.services[0].id
-            this.selected_service = this.services[0].title
-          }
-
-          this.cdr.detectChanges() // Rerenders The HTML
-        }
-        
-        else {
-          console.error(response.message) // Shows The Error Message
-        }
-      },
-
-      error:(error) => {
-        console.error(error) // Shows The Error
-      }
-    })
-  }
-
-  // Function For Format The Date
-  private formatDate(date:Date):string {
-    const year:number = date.getFullYear() // Gets The Year
-    const month:string = String(date.getMonth() + 1).padStart(2, "0") // Gets The Month
-    const day:string = String(date.getDate()).padStart(2, "0") // Gets The Day
-
-    return `${year}-${month}-${day}` // Returns The Formatted Date
-  }
-
-  constructor(private BookingService:BookingService, private cdr:ChangeDetectorRef) {
-    // Applies A Service Picked In The Price List
     effect(() => {
-      const picked:Service|null = this.BookingDraftService.service()
+      this.store.step()
+      this.store.confirmation()
 
-      if(picked) {
-        this.service_id = picked.id
-        this.selected_service = picked.title
-        this.cdr.markForCheck()
+      if(is_first_run) {
+        is_first_run = false
+        return
       }
+
+      untracked(() => afterNextRender(() => this.step_heading()?.nativeElement.focus(), { injector: this.injector }))
     })
-  }
-
-  // Method For Toggle Show / Hide Services Select Menu
-  toggleShowServicesSelectMenu():void {
-    this.is_services_select_menu_open = !this.is_services_select_menu_open // Shows Or Hides The Services Select Menu
-  }
-
-  // Method For Select The Service
-  selectService(id:number, title:string):void {
-    this.service_id = id // Sets The Selected Service ID
-    this.selected_service = title // Shows The Selected Service Title
-    this.toggleShowServicesSelectMenu() // Hides The Services Select Menu
-  }
-
-  // Method For Select The Date
-  selectDate(event:Event):void {
-    const value:string = (event.target as HTMLInputElement).value // Gets The Selected Value
-
-    if(!value) {
-      this.slots_data = [] // Removes The Slots Data
-      this.selected_slot = null // Removes The Selected Slot
-      this.selected_date = "" // Removes The Selected Date
-      return
-    }
-
-    const formatted_date = value.includes("T") ? value.split("T")[0] : value // Formats The Date
-
-    if(this.slots_data.length > 0 && this.selected_date === formatted_date) return
-
-    this.slots_data = [] // Removes The Slots Data
-    this.selected_slot = null // Removes The Selected Slot
-    this.selected_date = formatted_date // Sets The Selected Date
-
-    // Gets The Available Slots
-    this.BookingService.getAvailableSlots(this.selected_date).subscribe({
-      next:(response) => {
-        if(response && response.success && response.slots_data) {
-          this.slots_data = [...response.slots_data] // Sets The Slots Data
-          this.cdr.detectChanges() // Rerenders The HTML
-        }
-        
-        else {
-          console.error(response.message) // Shows The Error Message
-        }
-      },
-
-      error:(error) => {
-        console.error(error) // Shows The Error
-        this.ToastService.error(error.error?.message || "Pri hľadaní voľných termínov došlo k chybe.") // Shows The Error Toast
-      }
-    })
-  }
-
-  // Method For Select The Slot
-  selectSlot(slot:string):void {
-    this.selected_slot = slot // Sets The Selected Slot
-  }
-
-  // Method For Confirm The Booking
-  confirmBooking():void {
-    if(!this.customer.first_name || !this.customer.last_name || !this.customer.phone_number) {
-      this.ToastService.error("Prosím, vyplňte všetky kontaktné údaje.") // Shows The Error Toast
-      return
-    }
-
-    if(this.selected_slot && this.selected_date !== "" && this.service_id !== null) {
-      // Creates The Appointment
-      this.BookingService.createAppointment(this.customer, this.service_id, this.selected_slot, this.selected_date).subscribe({
-        next:(response) => {
-          if(response.success) {
-            this.ToastService.success(response.message) // Shows The Success Toast
-
-            this.selected_slot = null // Removes The Selected Slot
-
-            this.customer.first_name = "" // Removes The Customer's First Name
-            this.customer.last_name = "" // Removes The Customer's Last Name
-            this.customer.phone_number = "" // Removes The Customer's Phone Number
-            
-            this.reloadSlots() // Reloads The Slots
-          }
-          
-          else {
-            this.ToastService.error(response.message) // Shows The Error Toast
-          }
-        },
-  
-        error:(error) => {
-          console.error(error) // Shows The Error
-          this.ToastService.error(error.error?.message || "Pri vytváraní rezervácie nastala chyba.") // Shows The Error Toast
-        }
-      })
-    }
-  }
-
-  // Method For Reload The Slots
-  private reloadSlots():void {
-    if(this.selected_date) {
-      // Gets The Available Slots
-      this.BookingService.getAvailableSlots(this.selected_date).subscribe({
-        next:(response) => {
-          if(response.success) {
-            if(response && response.success && response.slots_data) {
-              this.slots_data = [...response.slots_data] // Sets The Slots Data
-              this.cdr.detectChanges() // Rerenders The HTML
-            }
-          }
-          
-          else {
-            console.error(response.message) // Shows The Error Message
-          }
-        },
-  
-        error:(error) => {
-          console.error(error) // Shows The Error
-        }
-      })
-    }
   }
 }

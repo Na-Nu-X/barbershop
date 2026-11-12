@@ -1,0 +1,93 @@
+<!-- Day Picker -->
+<div class="date_picker">
+    <div class="picker_head">
+        <span class="field_label" id="booking_date_label">Dátum</span>
+
+        <div class="week_nav">
+            <button type="button" class="icon_button" aria-label="Predchádzajúci týždeň" [disabled]="week() === 0" (click)="changeWeek(-1)">
+                <i class="fa-solid fa-chevron-left" aria-hidden="true"></i> <!-- https://fontawesome.com/icons/chevron-left -->
+            </button>
+
+            <button type="button" class="icon_button" aria-label="Nasledujúci týždeň" [disabled]="week() >= max_week()" (click)="changeWeek(1)">
+                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i> <!-- https://fontawesome.com/icons/chevron-right -->
+            </button>
+        </div>
+    </div>
+
+    <div class="days" role="group" aria-labelledby="booking_date_label">
+        @for (day of days(); track day.iso) {
+            <button type="button" class="day" [class.selected]="store.date() === day.iso" [attr.aria-pressed]="store.date() === day.iso" [attr.aria-label]="day.label" [disabled]="day.disabled" (click)="store.chooseDate(day.iso)">
+                <span class="weekday">{{ day.weekday }}</span>
+                <span class="number">{{ day.day }}</span>
+                <span class="month">{{ day.month }}</span>
+            </button>
+        }
+    </div>
+</div>
+
+<!-- Time Picker -->
+<div class="time_picker" aria-live="polite">
+    <p class="field_label">
+        Čas
+        @if (date_label()) {
+            <span class="chosen_date">· {{ date_label() }}</span>
+        }
+    </p>
+
+    @switch (store.slots_state()) {
+        @case ("loading") {
+            <div class="slots" aria-busy="true" aria-label="Načítavam voľné termíny">
+                @for (placeholder of [1, 2, 3, 4, 5, 6, 7, 8]; track placeholder) {
+                    <span class="slot skeleton" aria-hidden="true"></span>
+                }
+            </div>
+        }
+
+        @case ("error") {
+            <div class="step_notice" role="alert">
+                <p>Voľné termíny sa nepodarilo načítať.</p>
+                <button appButton variant="secondary" size="sm" type="button" (click)="store.loadSlots()">Skúsiť znova</button>
+            </div>
+        }
+
+        @case ("ready") {
+            @if (store.is_day_closed()) {
+                <div class="step_notice">
+                    <i class="fa-regular fa-calendar-xmark" aria-hidden="true"></i> <!-- https://fontawesome.com/icons/calendar-xmark -->
+                    <p>V tento deň máme zatvorené. Vyberte si, prosím, iný deň.</p>
+                </div>
+            } @else if (slot_groups().length === 0) {
+                <div class="step_notice">
+                    <i class="fa-regular fa-calendar" aria-hidden="true"></i> <!-- https://fontawesome.com/icons/calendar -->
+                    <p>Na tento deň už nie sú voľné termíny. Skúste, prosím, iný deň.</p>
+                </div>
+            } @else {
+                @for (group of slot_groups(); track group.label) {
+                    <div class="slot_group">
+                        <p class="group_label">{{ group.label }}</p>
+
+                        <div class="slots">
+                            @for (slot of group.slots; track slot.slot) {
+                                <button type="button" class="slot" [class.selected]="store.time() === slot.slot" [attr.aria-pressed]="store.time() === slot.slot" (click)="store.chooseTime(slot.slot)">
+                                    {{ slot.slot }}
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        }
+
+        @default {
+            <div class="step_notice">
+                <p>Vyberte si dátum.</p>
+            </div>
+        }
+    }
+</div>
+
+<div class="step_actions">
+    <button appButton variant="secondary" type="button" (click)="store.goTo(1)">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Späť
+    </button>
+</div>

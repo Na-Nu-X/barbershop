@@ -1,0 +1,57 @@
+@use "partials/variables" as *;
+@use "partials/mixins" as *;
+@use "../booking-shared" as *;
+
+:host {
+    display: flex;
+    flex-direction: column;
+    gap: $space-6;
+}
+
+@include step_common;
+
+.details_form {
+    display: flex;
+    flex-direction: column;
+    gap: $space-4;
+}
+
+.name_row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $space-4;
+
+    @include media_up($bp-sm) {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+input {
+    @include form_input;
+
+    &[aria-invalid="true"] {
+        border-color: $color-danger;
+    }
+}
+
+.field_error,
+.field_hint {
+    margin-top: $space-1;
+    font-size: $text-sm;
+}
+
+.field_error {
+    color: $color-danger;
+}
+
+.field_hint {
+    color: $color-text-subtle;
+}
+
+.step_actions {
+    margin-top: $space-2;
+
+    .confirm {
+        flex: 2;
+    }
+}

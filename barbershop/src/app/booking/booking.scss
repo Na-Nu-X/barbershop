@@ -2,100 +2,206 @@
 @use "partials/variables" as *;
 @use "partials/mixins" as *;
 
-.booking_container {
-    @include card;
-    display: flex;
-    flex-direction: column;
-    gap: $space-4;
-    width: calc(100% - 2 * #{$gutter});
-    max-width: $container-narrow;
-    margin: 0 auto $space-6;
+.booking {
+    @include container($container-narrow);
+    padding-block: $section-padding;
+    scroll-margin-top: $space-4;
+}
 
-    .date_input {
-        @include form_input;
+.booking_card {
+    @include card($space-5);
+
+    @include media_up($bp-sm) {
+        padding: $space-7;
+    }
+}
+
+// Stepper
+
+.stepper {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: $space-2;
+    margin-bottom: $space-6;
+    list-style: none;
+
+    li {
+        position: relative;
+        padding-bottom: $space-3;
+
+        // Progress Bar Under Each Step
+        &::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 2px;
+            background-color: $color-border;
+            border-radius: $radius-pill;
+            transition: background-color $duration-base $ease;
+        }
+
+        &.active::after,
+        &.done::after {
+            background-color: $color-accent;
+        }
+    }
+
+    button {
+        all: unset;
+        box-sizing: border-box;
+        @include focus_ring(4px);
+        display: flex;
+        align-items: center;
+        gap: $space-3;
+        width: 100%;
+        border-radius: $radius-sm;
         cursor: pointer;
 
-        &::-webkit-calendar-picker-indicator {
-            cursor: pointer;
-            opacity: 0.6;
-            transition: opacity $duration-fast $ease;
-
-            &:hover {
-                opacity: 1;
-            }
+        &:disabled {
+            cursor: default;
         }
     }
 
-    .slots_grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
-        gap: $space-2;
-
-        .slot_button {
-            @include focus_ring(2px);
-            min-height: 44px;
-            padding: $space-2;
-            text-align: center;
-            background: transparent;
-            color: $color-text;
-            border: 1px solid $color-border-strong;
-            border-radius: $radius-sm;
-            font-weight: $weight-medium;
-            font-variant-numeric: tabular-nums;
-            cursor: pointer;
-            transition:
-                background-color $duration-fast $ease,
-                border-color $duration-fast $ease,
-                color $duration-fast $ease;
-
-            &.available:hover {
-                border-color: $color-accent;
-                color: $color-accent;
-            }
-
-            &.available.selected {
-                background-color: $color-accent;
-                border-color: $color-accent;
-                color: $color-on-accent;
-            }
-
-            &.booked {
-                color: $color-text-subtle;
-                border-color: $color-border;
-                text-decoration: line-through;
-                cursor: not-allowed;
-            }
-        }
+    .number {
+        @include flex_center;
+        flex-shrink: 0;
+        width: 28px;
+        height: 28px;
+        font-size: $text-sm;
+        font-weight: $weight-semibold;
+        color: $color-text-subtle;
+        border: 1px solid $color-border-strong;
+        border-radius: 50%;
+        transition: all $duration-base $ease;
     }
 
-    .info_message {
-        padding: $space-6 0;
-        text-align: center;
+    .text {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .label {
+        font-size: $text-sm;
+        font-weight: $weight-semibold;
+        color: $color-text-subtle;
+    }
+
+    .summary {
+        @include crop_text;
+        font-size: $text-xs;
         color: $color-text-muted;
     }
 
-    .customer_form {
-        display: flex;
-        flex-direction: column;
-        gap: $space-4;
+    .active {
+        .number {
+            color: $color-on-accent;
+            background-color: $color-accent;
+            border-color: $color-accent;
+        }
 
-        .name_container {
-            display: flex;
-            gap: $space-3;
+        .label {
+            color: $color-text;
+        }
+    }
 
-            input {
-                flex: 1;
-                min-width: 0;
+    .done {
+        .number {
+            color: $color-accent;
+            border-color: $color-accent;
+        }
+
+        .label {
+            color: $color-text-muted;
+        }
+
+        button:hover .label {
+            color: $color-accent;
+        }
+    }
+
+    // Phones: Numbers + Labels Only
+    @include media_down($bp-sm) {
+        .summary {
+            display: none;
+        }
+
+        button {
+            flex-direction: column;
+            gap: $space-1;
+            text-align: center;
+        }
+    }
+}
+
+.step_title {
+    margin-bottom: $space-5;
+    font-size: $text-xl;
+    outline: none;
+}
+
+// Confirmation
+
+.confirmation {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-4;
+    text-align: center;
+    animation: confirmIn $duration-slow $ease both;
+
+    h3 {
+        font-size: $text-2xl;
+        outline: none;
+    }
+
+    .check {
+        @include flex_center;
+        width: 64px;
+        height: 64px;
+        font-size: $text-xl;
+        color: $color-success;
+        background-color: color.adjust($color-success, $alpha: -0.88);
+        border: 1px solid color.adjust($color-success, $alpha: -0.6);
+        border-radius: 50%;
+    }
+
+    .lead {
+        color: $color-text-muted;
+    }
+
+    app-booking-summary {
+        width: 100%;
+        text-align: left;
+    }
+
+    .note {
+        max-width: 46ch;
+        font-size: $text-sm;
+        color: $color-text-muted;
+
+        a {
+            color: $color-accent;
+            text-decoration: none;
+            white-space: nowrap;
+
+            &:hover {
+                text-decoration: underline;
             }
         }
+    }
+}
 
-        input[type="text"],
-        input[type="tel"] {
-            @include form_input;
-        }
+@keyframes confirmIn {
+    from {
+        opacity: 0;
+        transform: scale(0.98);
+    }
 
-        .services_select_menu {
-            @include custom_select_menu($options_list_height: auto);
-        }
+    to {
+        opacity: 1;
+        transform: none;
     }
 }

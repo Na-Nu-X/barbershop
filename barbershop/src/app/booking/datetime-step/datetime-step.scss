@@ -1,0 +1,194 @@
+@use "sass:color";
+@use "partials/variables" as *;
+@use "partials/mixins" as *;
+@use "../booking-shared" as *;
+
+:host {
+    display: flex;
+    flex-direction: column;
+    gap: $space-6;
+}
+
+@include step_common;
+
+.step_actions {
+    margin-top: 0;
+
+    @include media_up($bp-sm) {
+        > * {
+            flex: 0 0 auto;
+        }
+    }
+}
+
+// Day Strip
+
+.picker_head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $space-2;
+
+    .field_label {
+        margin-bottom: 0;
+    }
+}
+
+.week_nav {
+    display: flex;
+    gap: $space-1;
+}
+
+.icon_button {
+    all: unset;
+    @include flex_center;
+    @include focus_ring(2px);
+    width: 36px;
+    height: 36px;
+    color: $color-text-muted;
+    border: 1px solid $color-border;
+    border-radius: 50%;
+    cursor: pointer;
+    transition:
+        color $duration-fast $ease,
+        border-color $duration-fast $ease;
+
+    &:hover:not(:disabled) {
+        color: $color-accent;
+        border-color: $color-accent;
+    }
+
+    &:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+    }
+}
+
+.days {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: $space-2;
+}
+
+.day {
+    all: unset;
+    box-sizing: border-box;
+    @include focus_ring(2px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: $space-2 0;
+    background-color: $color-surface-raised;
+    border: 1px solid $color-border;
+    border-radius: $radius-md;
+    cursor: pointer;
+    transition:
+        border-color $duration-fast $ease,
+        background-color $duration-fast $ease;
+
+    .weekday,
+    .month {
+        font-size: $text-xs;
+        text-transform: uppercase;
+        letter-spacing: $tracking-wide;
+        color: $color-text-subtle;
+    }
+
+    .number {
+        font-family: $font-display;
+        font-size: $text-xl;
+        font-weight: $weight-semibold;
+        font-variant-numeric: lining-nums;
+        line-height: 1.1;
+    }
+
+    &:hover:not(:disabled):not(.selected) {
+        border-color: $color-border-strong;
+    }
+
+    &.selected {
+        background-color: $color-accent;
+        border-color: $color-accent;
+
+        .number,
+        .weekday,
+        .month {
+            color: $color-on-accent;
+        }
+    }
+
+    &:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+
+        .number {
+            text-decoration: line-through;
+            text-decoration-thickness: 1px;
+        }
+    }
+}
+
+// Times
+
+.chosen_date {
+    text-transform: none;
+    letter-spacing: normal;
+    font-weight: $weight-medium;
+    color: $color-text-muted;
+}
+
+.slot_group + .slot_group {
+    margin-top: $space-4;
+}
+
+.group_label {
+    margin-bottom: $space-2;
+    font-size: $text-sm;
+    color: $color-text-muted;
+}
+
+.slots {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: $space-2;
+}
+
+.slot {
+    all: unset;
+    box-sizing: border-box;
+    @include focus_ring(2px);
+    min-height: 44px;
+    padding: $space-2;
+    text-align: center;
+    font-weight: $weight-medium;
+    font-variant-numeric: tabular-nums;
+    border: 1px solid $color-border-strong;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    transition:
+        border-color $duration-fast $ease,
+        color $duration-fast $ease,
+        background-color $duration-fast $ease;
+
+    &:hover:not(.selected) {
+        border-color: $color-accent;
+        color: $color-accent;
+    }
+
+    &.selected {
+        background-color: $color-accent;
+        border-color: $color-accent;
+        color: $color-on-accent;
+    }
+
+    &.skeleton {
+        @include skeleton_block;
+        cursor: default;
+    }
+}
+
+.step_notice > i {
+    font-size: $text-xl;
+    color: $color-accent;
+}
