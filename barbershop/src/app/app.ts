@@ -26,19 +26,12 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
 
   private animation_frame_id!:number // Stores The Animation Frame ID
 
-  is_loading:boolean = false // Stores The Information If The Page Is Loading
-
-  constructor(private LoadingService:Loading, private SiteMetaService:SiteMeta) {
+  constructor(protected LoadingService:Loading, private SiteMetaService:SiteMeta) {
     this.SiteMetaService.apply() // Sets The Title, Language And Meta Tags
   }
 
   // Method Which Executes In Beginning
   ngOnInit():void {
-    // Initializes The Loader
-    this.LoadingService.is_loading$.subscribe((state) => {
-      this.is_loading = state
-    })
-
     console.log("%cWebsite by Patrik Behul - behulpatrik@gmail.com", "color: rgb(170, 255, 50); background-color: rgb(0, 0, 0)") // Secret Message
   }
 

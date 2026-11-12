@@ -1,18 +1,15 @@
-import { Injectable } from "@angular/core"
-import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from "@angular/common/http"
-import { Observable } from "rxjs"
+import { HttpInterceptorFn } from "@angular/common/http"
+import { inject } from "@angular/core"
 import { finalize } from "rxjs/operators"
-import { Loading } from '../services/loading'
+import { Loading } from "../services/loading"
 
-@Injectable()
-export class LoadingInterceptor implements HttpInterceptor {
-  constructor(private LoadingService:Loading) { }
+// Shows The Global Preloader For The Lifetime Of Every HTTP Request (Success, Error Or Cancel)
+export const loadingInterceptor:HttpInterceptorFn = (req, next) => {
+  const LoadingService = inject(Loading)
 
-  intercept(req:HttpRequest<any>, next:HttpHandler):Observable<HttpEvent<any>> {
-    this.LoadingService.show() // Shows The Loader
+  LoadingService.show()
 
-    return next.handle(req).pipe(
-      finalize(() => this.LoadingService.hide()) // Hides The Loader
-    )
-  }
+  return next(req).pipe(
+    finalize(() => LoadingService.hide())
+  )
 }
