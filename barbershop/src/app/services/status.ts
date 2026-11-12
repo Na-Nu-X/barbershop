@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core"
 import { HttpClient } from "@angular/common/http"
 import { Observable } from "rxjs"
+import { apiUrl } from "../config/api"
 
 interface StatusResponse {
     success:boolean,
@@ -16,7 +17,7 @@ interface StatusResponse {
     providedIn: "root"
 })
 export class Status {
-    private api_url:string = "http://127.0.0.1:8001/api/get-status/" // Connection To The Back-End API
+    private api_url:string = apiUrl("get-status/") // Connection To The Back-End API
 
     constructor(private http: HttpClient) { }
 

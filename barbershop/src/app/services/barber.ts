@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core"
 import { HttpClient } from "@angular/common/http"
 import { Observable } from "rxjs"
+import { apiUrl } from "../config/api"
 
 export interface BarberData {
     id:number,
@@ -22,7 +23,7 @@ interface BarbersResponse {
     providedIn: "root"
 })
 export class Barber {
-    private api_url:string = "http://127.0.0.1:8001/api/get-barbers/" // Connection To The Back-End API
+    private api_url:string = apiUrl("get-barbers/") // Connection To The Back-End API
 
     constructor(private http: HttpClient) { }
 
