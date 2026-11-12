@@ -1,0 +1,38 @@
+@use "partials/variables" as *;
+@use "partials/mixins" as *;
+
+:host {
+    @include button_base;
+    text-decoration: none;
+}
+
+// Variants
+
+:host(.button_primary) {
+    @include button_primary_colors;
+}
+
+:host(.button_secondary) {
+    @include button_secondary_colors;
+}
+
+:host(.button_ghost) {
+    @include button_ghost_colors;
+}
+
+// Sizes
+
+:host(.button_sm) {
+    min-height: 40px;
+    padding: $space-2 $space-4;
+    font-size: $text-xs;
+}
+
+:host(.button_lg) {
+    min-height: 56px;
+    padding: $space-4 $space-7;
+}
+
+:host(.button_block) {
+    width: 100%;
+}

@@ -1,12 +1,15 @@
 @use "partials/variables" as *;
 @use "partials/mixins" as *;
 
+.barbers {
+    margin-top: $section-padding;
+}
+
 .barbers_container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 400px));
     justify-content: center;
     gap: $space-5;
-    margin-top: $space-6;
     padding: 0 $gutter;
 
     .one_barber {

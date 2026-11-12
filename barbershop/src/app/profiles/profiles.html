@@ -1,21 +1,25 @@
-<div class="barbers_container" id="barbers">
-    <div class="one_barber" *ngFor="let one_barber of barbers">
-        <div class="header">
-            <img class="profile_picture" alt="Profilový obrázok" [src]="one_barber.profile_picture || 'assets/default-avatar.png'">
+<section class="barbers" id="barbers">
+    <app-section-heading eyebrow="Tím" title="Naši barberi" />
 
-            <div class="info">
-                <h3 class="name">{{ one_barber.nickname || one_barber.first_name }}</h3>
+    <div class="barbers_container">
+        <div class="one_barber" *ngFor="let one_barber of barbers">
+            <div class="header">
+                <img class="profile_picture" alt="Profilový obrázok" [src]="one_barber.profile_picture || 'assets/default-avatar.png'">
 
-                <a class="instagram" target="_blank" [href]="one_barber.instagram" *ngIf="one_barber.instagram">
-                    <i class="fa-brands fa-instagram"></i> Instagram <!-- https://fontawesome.com/icons/instagram -->
-                </a>
+                <div class="info">
+                    <h3 class="name">{{ one_barber.nickname || one_barber.first_name }}</h3>
+
+                    <a class="instagram" target="_blank" [href]="one_barber.instagram" *ngIf="one_barber.instagram">
+                        <i class="fa-brands fa-instagram"></i> Instagram <!-- https://fontawesome.com/icons/instagram -->
+                    </a>
+                </div>
+            </div>
+
+            <p class="bio" *ngIf="one_barber.bio">{{ one_barber.bio }}</p>
+
+            <div class="portfolio_grid" *ngIf="one_barber.portfolio.length > 0">
+                <img class="portfolio_image" alt="Práca barbera" [src]="one_image" *ngFor="let one_image of one_barber.portfolio">
             </div>
         </div>
-
-        <p class="bio" *ngIf="one_barber.bio">{{ one_barber.bio }}</p>
-
-        <div class="portfolio_grid" *ngIf="one_barber.portfolio.length > 0">
-            <img class="portfolio_image" alt="Práca barbera" [src]="one_image" *ngFor="let one_image of one_barber.portfolio">
-        </div>
     </div>
-</div>
+</section>

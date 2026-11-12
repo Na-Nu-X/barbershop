@@ -1,6 +1,8 @@
 import { ChangeDetectorRef, Component } from "@angular/core"
 import { FormsModule } from "@angular/forms"
 import { Message } from "../services/message"
+import { Button } from "../shared/button/button"
+import { SectionHeading } from "../shared/section-heading/section-heading"
 
 export interface ContactMessage {
   first_name:string,
@@ -11,7 +13,7 @@ export interface ContactMessage {
 
 @Component({
   selector: 'app-contact-form',
-  imports: [FormsModule],
+  imports: [FormsModule, Button, SectionHeading],
   templateUrl: './contact-form.html',
   styleUrl: './contact-form.scss',
 })

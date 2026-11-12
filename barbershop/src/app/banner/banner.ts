@@ -2,10 +2,11 @@ import { Component, inject } from "@angular/core"
 import { Status } from "../services/status"
 import { CommonModule } from "@angular/common"
 import { Scroll } from "../services/scroll"
+import { Button } from "../shared/button/button"
 
 @Component({
   selector: "app-banner",
-  imports: [CommonModule],
+  imports: [CommonModule, Button],
   templateUrl: "./banner.html",
   styleUrl: "./banner.scss",
 })

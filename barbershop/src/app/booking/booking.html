@@ -1,5 +1,5 @@
 <section class="booking_container" id="booking">
-    <h2>Vyberte si termín</h2>
+    <app-section-heading eyebrow="Rezervácia" title="Vyberte si termín" />
     
     <input 
         class="date_input" 
@@ -46,7 +46,7 @@
             </div>
         </div>
         
-        <button class="confirm" title="Rezervovať" aria-label="Rezervovať" (click)="confirmBooking()">
+        <button appButton block type="submit" (click)="confirmBooking()">
             Rezervovať čas o {{ selected_slot }}
         </button>
     </form>

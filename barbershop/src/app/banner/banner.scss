@@ -27,14 +27,6 @@
         display: flex;
         gap: $space-4;
         flex-wrap: wrap;
-
-        .book {
-            @include button_primary;
-        }
-
-        .order {
-            @include button_secondary;
-        }
     }
 
     .status {

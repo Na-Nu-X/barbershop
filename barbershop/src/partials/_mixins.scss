@@ -133,10 +133,9 @@
     }
 }
 
-// Primary Button (Filled Brass)
+// Button Color Variants (Use With `button_base`, Or Via The Shorthands Below)
 
-@mixin button_primary($width: auto) {
-    @include button_base($width);
+@mixin button_primary_colors {
     background-color: $color-accent;
     color: $color-on-accent;
 
@@ -150,10 +149,7 @@
     }
 }
 
-// Secondary Button (Outlined)
-
-@mixin button_secondary($width: auto) {
-    @include button_base($width);
+@mixin button_secondary_colors {
     background-color: transparent;
     color: $color-text;
     border-color: $color-border-strong;
@@ -162,6 +158,29 @@
         border-color: $color-accent;
         color: $color-accent;
     }
+}
+
+@mixin button_ghost_colors {
+    background-color: transparent;
+    color: $color-accent;
+
+    &:hover:not(:disabled) {
+        background-color: color.adjust($color-accent, $alpha: -0.9);
+    }
+}
+
+// Primary Button (Filled Brass)
+
+@mixin button_primary($width: auto) {
+    @include button_base($width);
+    @include button_primary_colors;
+}
+
+// Secondary Button (Outlined)
+
+@mixin button_secondary($width: auto) {
+    @include button_base($width);
+    @include button_secondary_colors;
 }
 
 /***************

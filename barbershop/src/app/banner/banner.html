@@ -4,8 +4,8 @@
     <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Veniam dolor, doloribus eligendi error debitis assumenda vero? Aperiam, veniam labore delectus et mollitia accusamus illo voluptatum recusandae! Sequi fugit tempora placeat!</p>
 
     <div class="buttons">
-        <button class="book" type="button" (click)="ScrollService.toSection('booking')">Rezervovať</button>
-        <button class="order" type="button" (click)="ScrollService.toSection('contact')">Kontakt</button>
+        <button appButton size="lg" type="button" (click)="ScrollService.toSection('booking')">Rezervovať</button>
+        <button appButton variant="secondary" size="lg" type="button" (click)="ScrollService.toSection('contact')">Kontakt</button>
     </div>
 
     <p class="status" [class.open]="is_open" [class.closed]="!is_open">

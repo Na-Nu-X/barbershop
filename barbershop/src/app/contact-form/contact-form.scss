@@ -10,12 +10,6 @@
     max-width: $container-narrow;
     margin: 0 auto;
 
-    h2 {
-        margin-bottom: $space-1;
-        text-align: center;
-        font-size: $text-2xl;
-    }
-
     .name_container {
         display: flex;
         gap: $space-3;
@@ -35,9 +29,5 @@
     textarea {
         resize: vertical;
         min-height: 120px;
-    }
-
-    .send {
-        @include button_primary;
     }
 }

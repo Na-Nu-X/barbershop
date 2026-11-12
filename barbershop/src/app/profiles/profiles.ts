@@ -1,12 +1,13 @@
 import { Component } from "@angular/core"
 import { Barber } from "../services/barber"
 import { CommonModule } from "@angular/common"
+import { SectionHeading } from "../shared/section-heading/section-heading"
 
 import type { BarberData } from "../services/barber"
 
 @Component({
   selector: "app-profiles",
-  imports: [CommonModule],
+  imports: [CommonModule, SectionHeading],
   templateUrl: "./profiles.html",
   styleUrl: "./profiles.scss",
 })
