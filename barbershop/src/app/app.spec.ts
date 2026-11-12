@@ -26,7 +26,7 @@ describe("App", () => {
     const compiled = fixture.nativeElement as HTMLElement
 
     expect(compiled.querySelector("app-navigation-bar nav")).toBeTruthy()
-    expect(compiled.querySelector("app-footer h2")?.textContent).toContain(SITE_CONFIG.name)
+    expect(compiled.querySelector("app-footer .wordmark")?.textContent).toContain(SITE_CONFIG.name)
     expect(compiled.querySelector("app-toasts [aria-live]")).toBeTruthy()
   })
 

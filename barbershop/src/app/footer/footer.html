@@ -1,33 +1,94 @@
-<footer>
-    <h2>{{ site.name }}</h2>
+<footer class="site_footer">
+    <div class="columns">
+        <!-- Brand -->
+        <div class="column brand">
+            @if (site.logo) {
+                <img class="logo" [src]="site.logo" [alt]="site.name">
+            } @else {
+                <p class="wordmark"><span class="mark" aria-hidden="true"><i class="fa-solid fa-scissors"></i></span> {{ site.name }}</p>
+            }
 
-    <address class="address">
-        <p>{{ site.address.street }}</p>
-        <p>{{ site.address.postal_code }} {{ site.address.city }}</p>
-    </address>
+            <p class="tagline">{{ site.tagline }}</p>
 
-    <div class="contact_us">
-        <p><i class="fa-regular fa-envelope" aria-hidden="true"></i> <a [href]="'mailto:' + site.contact.email" title="Napísať...">{{ site.contact.email }}</a></p>
-        <p><i class="fa-solid fa-phone" aria-hidden="true"></i> <a [href]="'tel:' + site.contact.phone" title="Zavolať...">{{ site.contact.phone_display }}</a></p>
+            <div class="social_media">
+                @for (social of site.socials; track social.url) {
+                    <a [href]="social.url" [attr.aria-label]="social.label" target="_blank" rel="noopener"><i [class]="social.icon" aria-hidden="true"></i></a>
+                }
+            </div>
+        </div>
+
+        <!-- Contact -->
+        <div class="column">
+            <h2 class="column_title">Kontakt</h2>
+
+            <address class="contact_list">
+                <p><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ site.address.street }}, {{ site.address.postal_code }} {{ site.address.city }}</p>
+                <p><i class="fa-solid fa-phone" aria-hidden="true"></i> <a [href]="'tel:' + site.contact.phone">{{ site.contact.phone_display }}</a></p>
+                <p><i class="fa-regular fa-envelope" aria-hidden="true"></i> <a [href]="'mailto:' + site.contact.email">{{ site.contact.email }}</a></p>
+            </address>
+        </div>
+
+        <!-- Opening Hours -->
+        <div class="column">
+            <h2 class="column_title">Otváracie hodiny</h2>
+
+            @switch (hours_state()) {
+                @case ("ready") {
+                    <dl class="hours">
+                        @for (day of opening_days(); track day.day_of_week) {
+                            <div class="day" [class.today]="today() === day.day_of_week" [class.closed]="day.is_closed">
+                                <dt>
+                                    {{ day_names[day.day_of_week] }}
+                                    @if (today() === day.day_of_week) {
+                                        <span class="today_badge">dnes</span>
+                                    }
+                                </dt>
+                                <dd>{{ day.is_closed ? "Zatvorené" : day.open_time + " – " + day.close_time }}</dd>
+                            </div>
+                        }
+                    </dl>
+                }
+
+                @case ("error") {
+                    <p class="muted">Otváracie hodiny vám radi povieme na čísle <a [href]="'tel:' + site.contact.phone">{{ site.contact.phone_display }}</a>.</p>
+                }
+
+                @default {
+                    <div class="hours" aria-busy="true" aria-label="Načítavam otváracie hodiny">
+                        @for (placeholder of [1, 2, 3, 4, 5, 6, 7]; track placeholder) {
+                            <span class="hours_skeleton" aria-hidden="true"></span>
+                        }
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- Navigation -->
+        <nav class="column" aria-label="Odkazy v pätičke">
+            <h2 class="column_title">Navigácia</h2>
+
+            <ul class="links">
+                @for (link of links; track link.section) {
+                    <li><a [href]="'#' + link.section" (click)="navigate($event, link.section)">{{ link.label }}</a></li>
+                }
+            </ul>
+        </nav>
     </div>
 
-    <div class="social_media">
-        @for (social of site.socials; track social.url) {
-            <a [href]="social.url" [title]="social.label" [attr.aria-label]="social.label" target="_blank" rel="noopener"><i [class]="social.icon" aria-hidden="true"></i></a>
-        }
-    </div>
+    <!-- Bottom Bar -->
+    <div class="bottom_bar">
+        <p class="copyright">&copy; {{ year }} {{ site.name }}. Všetky práva vyhradené.</p>
 
-    @if (site.payment_methods.length > 0) {
-        <div class="payment_methods">
-            <div class="icons">
+        @if (site.payment_methods.length > 0) {
+            <div class="payment_methods" aria-label="Akceptujeme platobné karty">
                 @for (method of site.payment_methods; track method.label) {
                     <img [src]="method.image" [title]="method.label" [alt]="method.label" loading="lazy">
                 }
             </div>
-        </div>
-    }
+        }
 
-    <div class="other">
-        <p class="copywrite">&copy; {{ site.name }} {{ year }}, Všetky práva vyhradené.</p>
+        <button type="button" class="back_to_top" (click)="ScrollService.toTop()">
+            Späť hore <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+        </button>
     </div>
 </footer>
