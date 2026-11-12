@@ -16,12 +16,21 @@ export interface PaymentMethod {
   image:string // Path Inside `public/`
 }
 
+export interface HeroContent {
+  eyebrow:string, // Small Label Above The Headline
+  title:string, // First Line Of The Headline
+  title_accent:string, // Second Line, Shown In Italic Brass
+  description:string,
+  image:string|null // Background Photo Inside `public/` (e.g. "images/hero.jpg"), Null Uses The Built-In Gradient Backdrop
+}
+
 export interface SiteConfig {
   name:string,
   logo:string|null, // Path Inside `public/` (e.g. "images/logo.svg"), Null Shows A Text Wordmark Instead
   tagline:string,
   description:string, // Used For The Meta Description And Social Previews
   language:string,
+  hero:HeroContent,
 
   address:{
     street:string,
@@ -47,6 +56,14 @@ export const SITE_CONFIG:SiteConfig = {
   tagline: "Precízny strih. Poctivé remeslo.",
   description: "Pánske kaderníctvo a barbershop v Bratislave. Strihy, úprava brady a holenie – rezervujte si termín online.",
   language: "sk",
+
+  hero: {
+    eyebrow: "Pánsky barbershop · Bratislava",
+    title: "Precízny strih.",
+    title_accent: "Poctivé remeslo.",
+    description: "Klasické aj moderné pánske strihy, úprava brady a holenie britvou. Rezervujte si termín online – zaberie to menej ako minútu.",
+    image: null
+  },
 
   address: {
     street: "Mlynské nivy 5/A",

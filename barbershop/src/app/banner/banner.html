@@ -1,17 +1,62 @@
-<div class="banner">
-    <h1>Vitaj! Aký chceš strih?</h1>
-
-    <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Veniam dolor, doloribus eligendi error debitis assumenda vero? Aperiam, veniam labore delectus et mollitia accusamus illo voluptatum recusandae! Sequi fugit tempora placeat!</p>
-
-    <div class="buttons">
-        <button appButton size="lg" type="button" (click)="ScrollService.toSection('booking')">Rezervovať</button>
-        <button appButton variant="secondary" size="lg" type="button" (click)="ScrollService.toSection('contact')">Kontakt</button>
+<section class="hero" [class.has_image]="hero.image" aria-labelledby="hero_title">
+    <!-- Backdrop: Client Photo, Or The Built-In Gradient + Texture -->
+    <div class="hero_backdrop" aria-hidden="true">
+        @if (hero.image) {
+            <img class="hero_image" [src]="hero.image" alt="" fetchpriority="high">
+        } @else {
+            <span class="hero_ornament"></span>
+        }
     </div>
 
-    <p class="status" [class.open]="is_open" [class.closed]="!is_open">
-        {{ status }}
-        <span *ngIf="is_open && open_till">(do {{ open_till }})</span>
-        <span *ngIf="!is_open && next_open">(otvárame o {{ next_open }})</span>
-        <span *ngIf="reason && reason !== '' && !next_open">({{ reason }})</span>
-    </p>
-</div>
+    <div class="hero_inner">
+        <div class="hero_content">
+            <!-- Live Open / Closed Status (Space Is Reserved To Avoid Layout Shift) -->
+            <div class="status_slot">
+                @if (status(); as current) {
+                    <p class="status_pill" [class.open]="current.is_open" role="status">
+                        <span class="dot" aria-hidden="true"></span>
+                        <strong>{{ current.label }}</strong>
+                        @if (current.detail) {
+                            <span class="detail">{{ current.detail }}</span>
+                        }
+                    </p>
+                }
+            </div>
+
+            <p class="eyebrow">{{ hero.eyebrow }}</p>
+
+            <h1 id="hero_title">
+                <span>{{ hero.title }}</span>
+                <em>{{ hero.title_accent }}</em>
+            </h1>
+
+            <p class="lead">{{ hero.description }}</p>
+
+            <div class="actions">
+                <button appButton size="lg" type="button" (click)="ScrollService.toSection('booking')">
+                    Rezervovať termín <i class="fa-solid fa-arrow-right" aria-hidden="true"></i> <!-- https://fontawesome.com/icons/arrow-right -->
+                </button>
+
+                <button appButton variant="secondary" size="lg" type="button" (click)="ScrollService.toSection('barbers')">Náš tím</button>
+            </div>
+        </div>
+
+        <!-- Quick Facts -->
+        <dl class="hero_facts">
+            <div class="fact">
+                <dt><i class="fa-solid fa-location-dot" aria-hidden="true"></i> Adresa</dt>
+                <dd>{{ site.address.street }}, {{ site.address.city }}</dd>
+            </div>
+
+            <div class="fact">
+                <dt><i class="fa-solid fa-phone" aria-hidden="true"></i> Telefón</dt>
+                <dd><a [href]="'tel:' + site.contact.phone">{{ site.contact.phone_display }}</a></dd>
+            </div>
+
+            <div class="fact">
+                <dt><i class="fa-regular fa-calendar-check" aria-hidden="true"></i> Rezervácia</dt>
+                <dd>Online, kedykoľvek</dd>
+            </div>
+        </dl>
+    </div>
+</section>

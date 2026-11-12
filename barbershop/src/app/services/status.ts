@@ -3,7 +3,7 @@ import { HttpClient } from "@angular/common/http"
 import { Observable } from "rxjs"
 import { apiUrl } from "../config/api"
 
-interface StatusResponse {
+export interface StatusResponse {
     success:boolean,
     message:string,
     is_open?:boolean,
