@@ -1,3 +1,26 @@
-<div class="map">
+<section class="map" aria-label="Mapa a navigácia">
     <iframe [src]="map_url" [title]="'Mapa – ' + site.name" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
-</div>
+
+    <div class="map_card_wrapper">
+        <div class="map_card">
+            <p class="eyebrow">Kde nás nájdete</p>
+            <h2>{{ site.name }}</h2>
+
+            <address>
+                {{ site.address.street }}<br>
+                {{ site.address.postal_code }} {{ site.address.city }}
+            </address>
+
+            <div class="actions">
+                <a appButton size="sm" [href]="directions_url" target="_blank" rel="noopener">
+                    <i class="fa-solid fa-diamond-turn-right" aria-hidden="true"></i> Navigovať <!-- https://fontawesome.com/icons/diamond-turn-right -->
+                    <span class="visually_hidden">(otvorí sa v novom okne)</span>
+                </a>
+
+                <a appButton variant="secondary" size="sm" [href]="'tel:' + site.contact.phone">
+                    <i class="fa-solid fa-phone" aria-hidden="true"></i> Zavolať
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
