@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
@@ -8,8 +9,14 @@ from rest_framework.views import csrf_exempt
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+from django.template.defaultfilters import linebreaksbr
+from django.utils.html import format_html
 from .models import Service, Appointment, ContactMessage, BarbershopConfig, OpeningHour, Barber
 from .scheduling import BOOKING_HORIZON_DAYS, BookingError, ensure_slot_bookable, get_day_schedule, get_opening_hour, is_open_on, local_now, next_opening
+
+logger = logging.getLogger(__name__)
 
 @csrf_exempt
 def getStatus(request):
@@ -269,56 +276,83 @@ def createAppointment(request):
 
 @csrf_exempt
 def sendMessage(request):
-    if request.method == "POST":
+    if request.method != "POST":
+        return JsonResponse({
+            "success": False,
+            "message": "Správa sa dá odoslať len pomocou POST metódy."
+        }, status=405)
+
+    try:
+        data = json.loads(request.body) # Gets The Data
+
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        data = None
+
+    if not isinstance(data, dict):
+        return JsonResponse({
+            "success": False,
+            "message": "Neplatné dáta formulára."
+        }, status=400)
+
+    first_name = str(data.get("first_name") or "").strip() # Gets The First Name
+    last_name = str(data.get("last_name") or "").strip() # Gets The Last Name
+    email_address = str(data.get("email_address") or "").strip() # Gets The E-mail Address
+    message = str(data.get("message") or "").strip() # Gets The Message
+
+    if not all([first_name, last_name, email_address, message]):
+        return JsonResponse({
+            "success": False,
+            "message": "Prosím, vyplňte všetky povinné polia."
+        }, status=400)
+
+    # Checks The Lengths Allowed By The Database
+    if len(first_name) > 20 or len(last_name) > 50 or len(email_address) > 50 or len(message) > 250:
+        return JsonResponse({
+            "success": False,
+            "message": "Niektoré z polí je príliš dlhé."
+        }, status=400)
+
+    try:
+        validate_email(email_address)
+
+    except ValidationError:
+        return JsonResponse({
+            "success": False,
+            "message": "Zadajte, prosím, platnú e-mailovú adresu."
+        }, status=400)
+
+    # Saves The Message First, So It Is Never Lost (It Is Always Visible In The Admin)
+    ContactMessage.objects.create(
+        first_name=first_name,
+        last_name=last_name,
+        email_address=email_address,
+        message=message
+    )
+
+    # Notifies The Shop By E-mail (Sent From The Shop's Own Address; "Reply" Goes To The Customer)
+    shop_address = settings.EMAIL_HOST_USER
+
+    if shop_address:
+        subject = f"Barbershop - správa od zákazníka {first_name} {last_name}"
+        text_content = f"{first_name} {last_name} - {email_address}\n\n{message}"
+        html_content = format_html(
+            "<p><b>{} {} - {}</b></p><p>{}</p>",
+            first_name, last_name, email_address, linebreaksbr(message) # Escapes Everything The Customer Typed
+        )
+
+        mail_message = EmailMultiAlternatives(subject, text_content, shop_address, [shop_address], reply_to=[email_address])
+        mail_message.attach_alternative(html_content, "text/html")
+
         try:
-            data = json.loads(request.body) # Gets The Data
-
-            first_name = data.get("first_name") # Gets The First Name
-            last_name = data.get("last_name") # Gets The Last Name
-            email_address = data.get("email_address") # Gets The E-mail Address
-            message = data.get("message") # Gets The Message
-            
-            # Saves The New Message
-            ContactMessage.objects.create(
-                first_name=first_name,
-                last_name=last_name,
-                email_address=email_address,
-                message=message
-            )
-
-            # Sends Mail
-            subject = f"Barbershop - správa od zákazníka"
-            text_content = f"{first_name} {last_name} - {email_address}\n\n{message}"
-            sender = email_address
-            receiver = [settings.EMAIL_HOST_USER]
-            html_content = f"""
-                <p>
-                    <b>{first_name} {last_name} - {email_address}</b><br><br>
-                    {message}
-                </p>
-            """
-
-            mail_message = EmailMultiAlternatives(subject, text_content, sender, receiver)
-            mail_message.attach_alternative(html_content, "text/html")
-
             mail_message.send()
-            
-            return JsonResponse({
-                "success": True, 
-                "message": "Správa bola odoslaná."
-            }, status=200)
 
-        except Exception as e:
-            print(e)
-            return JsonResponse({
-                "success": False, 
-                "message": "Pri odosielaní správy došlo k chybe."
-            }, status=500)
-            
+        except Exception:
+            logger.exception("Contact message e-mail could not be sent.") # The Message Is Still Saved
+
     return JsonResponse({
-        "success": False, 
-        "message": "Správa sa dá odoslať len pomocou POST metódy."
-    }, status=405)
+        "success": True,
+        "message": "Správa bola odoslaná. Ozveme sa vám čo najskôr."
+    }, status=200)
 
 @csrf_exempt
 def getBarbers(request):
