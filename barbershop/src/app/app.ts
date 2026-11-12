@@ -39,7 +39,11 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
     if(!this.is_browser || !this.background_canvas) return
 
     const canvas:HTMLCanvasElement = this.background_canvas.nativeElement // Gets The Canvas
-    this.ctx = canvas.getContext("2d") as CanvasRenderingContext2D // Gets The Canvas Context
+    const ctx:CanvasRenderingContext2D|null = canvas.getContext("2d") // Gets The Canvas Context
+
+    if(!ctx) return // Canvas Not Supported (e.g. Old Browsers, Test Environments)
+
+    this.ctx = ctx
     
     this.handleResizeCanvas() // Resizes The Canvas
     this.generateCircles() // Generates The Circles
@@ -54,7 +58,7 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
 
   @HostListener("window:resize")
   onResize():void {
-    if(!this.is_browser || !this.background_canvas) return
+    if(!this.is_browser || !this.background_canvas || !this.ctx) return
 
     this.handleResizeCanvas() // Resizes The Canvas
     this.circles = [] // Deletes The Previous Circles
