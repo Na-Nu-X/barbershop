@@ -1,6 +1,7 @@
-import { ChangeDetectorRef, Component } from "@angular/core"
+import { ChangeDetectorRef, Component, inject } from "@angular/core"
 import { FormsModule } from "@angular/forms"
 import { Message } from "../services/message"
+import { Toast } from "../services/toast"
 import { Button } from "../shared/button/button"
 import { SectionHeading } from "../shared/section-heading/section-heading"
 
@@ -18,6 +19,8 @@ export interface ContactMessage {
   styleUrl: './contact-form.scss',
 })
 export class ContactForm {
+  private readonly ToastService = inject(Toast)
+
   // Stores The Contact Form Data
   contact_form:ContactMessage = {
     first_name: "",
@@ -37,7 +40,7 @@ export class ContactForm {
       !this.contact_form.email_address.trim() ||
       !this.contact_form.message.trim()
     ) {
-      alert("Prosím, vyplňte všetky povinné kontaktné údaje pre odoslanie správy.") // Shows The Alert
+      this.ToastService.error("Prosím, vyplňte všetky povinné kontaktné údaje pre odoslanie správy.") // Shows The Error Toast
       return
     }
 
@@ -45,7 +48,7 @@ export class ContactForm {
     this.MessageService.sendMessage(this.contact_form).subscribe({
       next:(response) => {
         if(response && response.success) {
-          alert(response.message)
+          this.ToastService.success(response.message) // Shows The Success Toast
 
           // Clears The Form
           this.contact_form = { 
@@ -59,13 +62,13 @@ export class ContactForm {
         }
         
         else {
-          console.error(response.message) // Shows The Error Message
+          this.ToastService.error(response.message) // Shows The Error Toast
         }
       },
 
       error:(error) => {
         console.error(error) // Shows The Error
-        alert("Pri odosielaní správy došlo k chybe.") // Shows The Alert
+        this.ToastService.error("Pri odosielaní správy došlo k chybe.") // Shows The Error Toast
       }
     })
   }

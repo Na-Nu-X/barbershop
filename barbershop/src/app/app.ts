@@ -2,13 +2,14 @@ import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef, Hos
 import { Router, RouterOutlet } from "@angular/router"
 import { NavigationBar } from "./navigation-bar/navigation-bar"
 import { Footer } from "./footer/footer"
+import { Toasts } from "./shared/toasts/toasts"
 import { Loading } from "./services/loading"
 import { SiteMeta } from "./services/site-meta"
 import { isPlatformBrowser } from "@angular/common"
 
 @Component({
   selector: "app-root",
-  imports: [RouterOutlet, NavigationBar, Footer],
+  imports: [RouterOutlet, NavigationBar, Footer, Toasts],
   templateUrl: "./app.html",
   styleUrl: "./app.scss"
 })

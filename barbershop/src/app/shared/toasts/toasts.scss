@@ -1,0 +1,91 @@
+@use "partials/variables" as *;
+@use "partials/mixins" as *;
+
+.toasts {
+    position: fixed;
+    left: $gutter;
+    right: $gutter;
+    bottom: $space-5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-3;
+    pointer-events: none;
+    z-index: $z-toast;
+
+    @include media_up($bp-sm) {
+        left: auto;
+        align-items: flex-end;
+    }
+}
+
+.toast {
+    display: flex;
+    align-items: flex-start;
+    gap: $space-3;
+    width: 100%;
+    max-width: 420px;
+    padding: $space-4;
+    background-color: $color-surface-raised;
+    color: $color-text;
+    border: 1px solid $color-border-strong;
+    border-left: 3px solid $color-accent;
+    border-radius: $radius-md;
+    box-shadow: $shadow-lg;
+    pointer-events: auto;
+    animation: toastIn $duration-slow $ease;
+
+    > i {
+        margin-top: 3px;
+        color: $color-accent;
+    }
+
+    p {
+        flex: 1;
+        font-size: $text-sm;
+    }
+
+    &.toast_success {
+        border-left-color: $color-success;
+
+        > i {
+            color: $color-success;
+        }
+    }
+
+    &.toast_error {
+        border-left-color: $color-danger;
+
+        > i {
+            color: $color-danger;
+        }
+    }
+
+    .close {
+        all: unset;
+        @include flex_center;
+        @include focus_ring(2px);
+        width: 24px;
+        height: 24px;
+        color: $color-text-subtle;
+        border-radius: $radius-sm;
+        cursor: pointer;
+        transition: color $duration-fast $ease;
+
+        &:hover {
+            color: $color-text;
+        }
+    }
+}
+
+@keyframes toastIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

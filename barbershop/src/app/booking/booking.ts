@@ -1,5 +1,6 @@
-import { ChangeDetectorRef, Component, ElementRef, ViewChild } from "@angular/core"
+import { ChangeDetectorRef, Component, ElementRef, ViewChild, inject } from "@angular/core"
 import { Booking as BookingService } from "../services/booking"
+import { Toast } from "../services/toast"
 import { CommonModule } from "@angular/common"
 import { FormsModule } from "@angular/forms"
 import { Button } from "../shared/button/button"
@@ -20,6 +21,8 @@ export interface Customer {
   styleUrl: "./booking.scss",
 })
 export class Booking {
+  private readonly ToastService = inject(Toast)
+
   services:Service[] = [] // Stores All Available Services
   service_id:number = 1 // Stores The Service ID
   selected_service:string = "" // Stores The Selected Service
@@ -131,7 +134,7 @@ export class Booking {
 
       error:(error) => {
         console.error(error) // Shows The Error
-        alert(error.error?.message || "Pri hľadaní voľných termínov došlo k chybe.") // Shows The Alert
+        this.ToastService.error(error.error?.message || "Pri hľadaní voľných termínov došlo k chybe.") // Shows The Error Toast
       }
     })
   }
@@ -144,7 +147,7 @@ export class Booking {
   // Method For Confirm The Booking
   confirmBooking():void {
     if(!this.customer.first_name || !this.customer.last_name || !this.customer.phone_number) {
-      alert("Prosím, vyplňte všetky kontaktné údaje.") // Shows The Alert
+      this.ToastService.error("Prosím, vyplňte všetky kontaktné údaje.") // Shows The Error Toast
       return
     }
 
@@ -153,7 +156,7 @@ export class Booking {
       this.BookingService.createAppointment(this.customer, this.service_id, this.selected_slot, this.selected_date).subscribe({
         next:(response) => {
           if(response.success) {
-            alert(response.message) // Shows The Alert
+            this.ToastService.success(response.message) // Shows The Success Toast
 
             this.selected_slot = null // Removes The Selected Slot
 
@@ -165,13 +168,13 @@ export class Booking {
           }
           
           else {
-            console.error(response.message) // Shows The Error Message
+            this.ToastService.error(response.message) // Shows The Error Toast
           }
         },
   
         error:(error) => {
           console.error(error) // Shows The Error
-          alert(error.error?.message || "Pri vytváraní rezervácie nastala chyba.") // Shows The Alert
+          this.ToastService.error(error.error?.message || "Pri vytváraní rezervácie nastala chyba.") // Shows The Error Toast
         }
       })
     }
