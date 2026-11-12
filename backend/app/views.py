@@ -3,14 +3,13 @@ import re
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from datetime import datetime, timedelta, time
+from datetime import datetime
 from rest_framework.views import csrf_exempt
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
-from django.utils import timezone
 from django.db import transaction
 from .models import Service, Appointment, ContactMessage, BarbershopConfig, OpeningHour, Barber
-from .scheduling import BookingError, ensure_slot_bookable, get_day_schedule
+from .scheduling import BookingError, ensure_slot_bookable, get_day_schedule, get_opening_hour, is_open_on, local_now, next_opening
 
 @csrf_exempt
 def getStatus(request):
@@ -21,7 +20,7 @@ def getStatus(request):
         }, status=405)
 
     config = BarbershopConfig.objects.first() # Gets The Global Config
-    
+
     if config and config.is_force_closed:
         return JsonResponse({
             "success": True,
@@ -31,34 +30,10 @@ def getStatus(request):
             "reason": config.closure_reason or "Dôvod nebol uvedený."
         }, status=200)
 
-    now = timezone.localtime(timezone.now()) # Gets The Current Time
-    current_day_index = now.isoweekday() # Gets The Current Day Index
-    current_time = now.time() # Gets The Current Time
+    now = local_now() # Gets The Current Local Time
+    opening_hour = get_opening_hour(now.date()) # Gets The Opening Hour For The Current Day
 
-    try:
-        opening_hour = OpeningHour.objects.get(day_of_week=current_day_index) # Gets The Opening Hour For The Current Day
-
-    except OpeningHour.DoesNotExist:
-        return JsonResponse({
-            "success": True,
-            "message": "Stav podniku bol úspešne získaný.",
-            "is_open": False,
-            "status": "Zatvorené",
-            "reason": "Neboli zadané otváracie hodiny."
-        }, status=200)
-
-    if opening_hour.is_closed_all_day:
-        return JsonResponse({
-            "success": True,
-            "message": "Stav podniku bol úspešne získaný.",
-            "is_open": False,
-            "status": "Zatvorené",
-            "reason": "Pravidelný zatvárací deň."
-        })
-
-    is_inside_opening_hours = opening_hour.open_time <= current_time <= opening_hour.close_time # Checks If The Current Time Is In Opening Hours
-
-    if is_inside_opening_hours:
+    if is_open_on(opening_hour) and opening_hour.open_time <= now.time() < opening_hour.close_time:
         return JsonResponse({
             "success": True,
             "message": "Stav podniku bol úspešne získaný.",
@@ -66,17 +41,29 @@ def getStatus(request):
             "status": "Otvorené",
             "reason": None,
             "open_till": opening_hour.close_time.strftime("%H:%M")
-        })
+        }, status=200)
+
+    # Closed Right Now - Explains Why And When The Shop Opens Next
+    if opening_hour is None:
+        reason = "Neboli zadané otváracie hodiny."
+
+    elif not is_open_on(opening_hour):
+        reason = "Pravidelný zatvárací deň."
 
     else:
-        return JsonResponse({
-            "success": True,
-            "message": "Stav podniku bol úspešne získaný.",
-            "is_open": False,
-            "status": "Zatvorené",
-            "reason": "Mimo otváracích hodín.",
-            "next_open": opening_hour.open_time.strftime("%H:%M")
-        })
+        reason = "Mimo otváracích hodín."
+
+    upcoming = next_opening(now) # Gets The Next Opening (Later Today Or The Next Open Day)
+
+    return JsonResponse({
+        "success": True,
+        "message": "Stav podniku bol úspešne získaný.",
+        "is_open": False,
+        "status": "Zatvorené",
+        "reason": reason,
+        "next_open": upcoming.open_time.strftime("%H:%M") if upcoming else None,
+        "next_open_day": upcoming.day_label if upcoming else None
+    }, status=200)
 
 @csrf_exempt
 def getAvailableServices(request):

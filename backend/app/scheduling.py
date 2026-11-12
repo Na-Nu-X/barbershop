@@ -131,3 +131,49 @@ def ensure_slot_bookable(day: date, start: time, service: Service, now: datetime
 
     if not slot.is_available:
         raise BookingError("Tento termín bol práve obsadený. Vyberte si, prosím, iný.", status=409)
+
+
+# Slovak "on <weekday>" phrases, keyed by ISO weekday (1 = Monday)
+WEEKDAY_PHRASES = {
+    1: "v pondelok",
+    2: "v utorok",
+    3: "v stredu",
+    4: "vo štvrtok",
+    5: "v piatok",
+    6: "v sobotu",
+    7: "v nedeľu",
+}
+
+
+@dataclass(frozen=True)
+class NextOpening:
+    day: date
+    open_time: time
+    day_label: str  # "dnes", "zajtra" or e.g. "v pondelok"
+
+
+def next_opening(now: datetime | None = None) -> NextOpening | None:
+    """The next moment the shop opens (later today, or the next open day within a week)."""
+    now = now or local_now()
+    hours = {opening.day_of_week: opening for opening in OpeningHour.objects.all()}
+
+    for offset in range(0, 8):
+        day = now.date() + timedelta(days=offset)
+        opening = hours.get(day.isoweekday())
+
+        if not is_open_on(opening):
+            continue
+
+        if offset == 0 and now.time() >= opening.open_time:
+            continue  # Today's opening already happened
+
+        if offset == 0:
+            label = "dnes"
+        elif offset == 1:
+            label = "zajtra"
+        else:
+            label = WEEKDAY_PHRASES[day.isoweekday()]
+
+        return NextOpening(day=day, open_time=opening.open_time, day_label=label)
+
+    return None
