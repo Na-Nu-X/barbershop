@@ -87,6 +87,7 @@ def getAvailableServices(request):
             services_data.append({
                 "id": one_service.id,
                 "title": one_service.title,
+                "description": one_service.description,
                 "duration": one_service.duration,
                 "price": one_service.price
             })

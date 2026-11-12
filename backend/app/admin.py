@@ -61,7 +61,8 @@ class ServiceAdmin(ModelAdmin):
     ]
 
     search_fields = [
-        "title"
+        "title",
+        "description"
     ]
 
     list_editable = []

@@ -81,6 +81,14 @@ class Service(models.Model):
         null=False
     )
 
+    description = models.CharField(
+        verbose_name="Popis",
+        help_text="Krátky popis služby zobrazený v cenníku (voliteľné).",
+        max_length=200,
+        blank=True,
+        default=""
+    )
+
     duration = models.PositiveIntegerField(
         verbose_name="Čas trvania", 
         help_text="Čas trvania v minútach.",
