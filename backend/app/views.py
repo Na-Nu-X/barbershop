@@ -8,6 +8,7 @@ from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.utils import timezone
 from .models import Service, Appointment, ContactMessage, BarbershopConfig, OpeningHour, Barber
+from .scheduling import BookingError, get_day_schedule
 
 @csrf_exempt
 def getStatus(request):
@@ -108,6 +109,7 @@ def getAvailableServices(request):
 @api_view(["GET"])
 def getAvailableSlots(request):
     date_string = request.query_params.get("date") # Gets The Date From The URL Parameters
+    service_id = request.query_params.get("service_id") # Gets The Service ID From The URL Parameters
 
     if not date_string:
         return JsonResponse({
@@ -115,35 +117,59 @@ def getAvailableSlots(request):
             "message": "Nebol vybraný žiaden dátum."
         }, status=400)
 
-    START_HOUR = 9 # Defines The Start Hour
-    END_HOUR = 17 # Defines The End Hour
-    SLOT_DURATION = 30 # Defines The Slot Duration
-    
-    chosen_date = datetime.strptime(date_string, '%Y-%m-%d').date() # Gets The Chosen Date
+    if not service_id:
+        return JsonResponse({
+            "success": False,
+            "message": "Nebola vybraná služba."
+        }, status=400)
 
-    all_slots = [] # Stores The All Slots
-    start_time = datetime.combine(chosen_date, time(START_HOUR, 0)) # Gets The Start Time
-    end_time = datetime.combine(chosen_date, time(END_HOUR, 0)) # Gets The End Time
+    try:
+        chosen_date = datetime.strptime(date_string, "%Y-%m-%d").date() # Gets The Chosen Date
 
-    while start_time < end_time:
-        all_slots.append(start_time.time()) # Adds The Available Slot
-        start_time += timedelta(minutes=SLOT_DURATION) # Increases The Start Time
+    except ValueError:
+        return JsonResponse({
+            "success": False,
+            "message": "Neplatný formát dátumu."
+        }, status=400)
 
-    booked_appointments = Appointment.objects.filter(date=chosen_date, is_active=True) # Gets The Already Booked Appointments For The Chosen Date
-    booked_times = [app.time_start for app in booked_appointments] # Gets The Already Booked Times For The Chosen Date
+    try:
+        service = Service.objects.get(id=int(service_id)) # Gets The Chosen Service (Its Duration Decides Which Times Fit)
 
-    slots_data = [] # Stores The Slots Data
+    except (ValueError, Service.DoesNotExist):
+        return JsonResponse({
+            "success": False,
+            "message": "Zvolená služba neexistuje."
+        }, status=400)
 
-    for one_slot in all_slots:
-        slots_data.append({
-            "slot": one_slot.strftime('%H:%M'),
-            "is_available": one_slot not in booked_times
-        })
+    try:
+        schedule = get_day_schedule(chosen_date, service) # Builds The Slots From Opening Hours And Existing Appointments
+
+    except BookingError as error:
+        return JsonResponse({
+            "success": False,
+            "message": error.message
+        }, status=error.status)
+
+    if schedule.is_closed:
+        message = "V tento deň máme zatvorené."
+
+    elif not any(one_slot.is_available for one_slot in schedule.slots):
+        message = "Na zvolený deň nie sú voľné žiadne termíny."
+
+    else:
+        message = "Položky boli nájdené."
 
     return JsonResponse({
         "success": True,
-        "message": "Položky boli nájdené.",
-        "slots_data": slots_data, 
+        "message": message,
+        "is_closed": schedule.is_closed,
+        "slots_data": [
+            {
+                "slot": one_slot.start.strftime("%H:%M"),
+                "is_available": one_slot.is_available
+            }
+            for one_slot in schedule.slots
+        ],
     }, status=200)
 
 @api_view(["POST"])
