@@ -42,7 +42,7 @@
             </div>
 
             <div class="options_list" [class.active]="is_services_select_menu_open" [attr.inert]="!is_services_select_menu_open ? '' : null">
-                <div class="option" [class.selected]="one_service.title === selected_service" *ngFor="let one_service of services" (click)="selectService(one_service.id, one_service.title)" tabindex="0"><i class="fa-solid fa-scissors"></i><span>{{ one_service.title }} - {{ (one_service.price / 100) | currency:'EUR':'':'1.2-2':'sk-SK' }}€</span></div> <!-- https://fontawesome.com/icons/scissors -->
+                <div class="option" [class.selected]="one_service.title === selected_service" *ngFor="let one_service of services" (click)="selectService(one_service.id, one_service.title)" tabindex="0"><i class="fa-solid fa-scissors"></i><span>{{ one_service.title }} – {{ one_service.price | euro }}</span></div> <!-- https://fontawesome.com/icons/scissors -->
             </div>
         </div>
         

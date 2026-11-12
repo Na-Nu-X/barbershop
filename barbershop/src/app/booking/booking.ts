@@ -5,6 +5,7 @@ import { CommonModule } from "@angular/common"
 import { FormsModule } from "@angular/forms"
 import { Button } from "../shared/button/button"
 import { SectionHeading } from "../shared/section-heading/section-heading"
+import { EuroPipe } from "../shared/pipes/euro.pipe"
 
 import type { Service } from "../services/booking"
 
@@ -16,7 +17,7 @@ export interface Customer {
 
 @Component({
   selector: "app-booking",
-  imports: [CommonModule, FormsModule, Button, SectionHeading],
+  imports: [CommonModule, FormsModule, Button, SectionHeading, EuroPipe],
   templateUrl: "./booking.html",
   styleUrl: "./booking.scss",
 })
