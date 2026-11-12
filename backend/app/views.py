@@ -9,7 +9,7 @@ from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
 from .models import Service, Appointment, ContactMessage, BarbershopConfig, OpeningHour, Barber
-from .scheduling import BookingError, ensure_slot_bookable, get_day_schedule, get_opening_hour, is_open_on, local_now, next_opening
+from .scheduling import BOOKING_HORIZON_DAYS, BookingError, ensure_slot_bookable, get_day_schedule, get_opening_hour, is_open_on, local_now, next_opening
 
 @csrf_exempt
 def getStatus(request):
@@ -63,6 +63,31 @@ def getStatus(request):
         "reason": reason,
         "next_open": upcoming.open_time.strftime("%H:%M") if upcoming else None,
         "next_open_day": upcoming.day_label if upcoming else None
+    }, status=200)
+
+@api_view(["GET"])
+def getOpeningHours(request):
+    opening_hours = {one_hour.day_of_week: one_hour for one_hour in OpeningHour.objects.all()} # Gets The Weekly Opening Hours
+
+    # Always Returns All 7 Days (Missing Days Count As Closed)
+    days_data = []
+
+    for day_of_week in range(1, 8):
+        one_hour = opening_hours.get(day_of_week)
+        is_open = is_open_on(one_hour)
+
+        days_data.append({
+            "day_of_week": day_of_week,
+            "is_closed": not is_open,
+            "open_time": one_hour.open_time.strftime("%H:%M") if is_open else None,
+            "close_time": one_hour.close_time.strftime("%H:%M") if is_open else None
+        })
+
+    return JsonResponse({
+        "success": True,
+        "message": "Otváracie hodiny boli nájdené.",
+        "opening_hours": days_data,
+        "booking_horizon_days": BOOKING_HORIZON_DAYS
     }, status=200)
 
 @csrf_exempt

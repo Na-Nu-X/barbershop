@@ -73,3 +73,19 @@ class StatusApiTests(TestCase):
         body = self.status_at(local_datetime(MONDAY, 12))
 
         self.assertEqual((body["is_open"], body["status"], body["reason"]), (False, "Mimoriadne zatvorené", "Sviatok"))
+
+
+class OpeningHoursApiTests(TestCase):
+    def test_returns_all_seven_days_with_closed_and_missing_days_marked(self):
+        create_week(open_hour=9, close_hour=17, closed_days=(7,))
+        OpeningHour.objects.filter(day_of_week=6).delete()  # Saturday not configured
+
+        body = self.client.get("/api/get-opening-hours/").json()
+        days = {day["day_of_week"]: day for day in body["opening_hours"]}
+
+        self.assertEqual(len(days), 7)
+        self.assertEqual(days[1], {"day_of_week": 1, "is_closed": False, "open_time": "09:00", "close_time": "17:00"})
+        self.assertTrue(days[6]["is_closed"])
+        self.assertTrue(days[7]["is_closed"])
+        self.assertIsNone(days[7]["open_time"])
+        self.assertEqual(body["booking_horizon_days"], 90)
