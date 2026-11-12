@@ -1,33 +1,153 @@
+@use "sass:color";
 @use "partials/variables" as *;
 @use "partials/mixins" as *;
 
-.contact_form {
-    @include card;
+.contact {
+    @include container;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $space-7;
+    padding-block: $section-padding;
+
+    @include media_up($bp-md) {
+        grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+        align-items: start;
+        gap: $space-9;
+    }
+}
+
+// Contact Details
+
+.details {
+    display: flex;
+    flex-direction: column;
+    gap: $space-5;
+    list-style: none;
+
+    li {
+        display: flex;
+        align-items: flex-start;
+        gap: $space-4;
+    }
+
+    .icon {
+        @include flex_center;
+        flex-shrink: 0;
+        width: 44px;
+        height: 44px;
+        color: $color-accent;
+        border: 1px solid color.adjust($color-accent, $alpha: -0.6);
+        border-radius: 50%;
+    }
+
+    .label {
+        font-size: $text-xs;
+        font-weight: $weight-semibold;
+        letter-spacing: $tracking-wider;
+        text-transform: uppercase;
+        color: $color-text-subtle;
+    }
+
+    a {
+        color: $color-text;
+        text-decoration: none;
+        transition: color $duration-fast $ease;
+
+        &:hover {
+            color: $color-accent;
+        }
+    }
+}
+
+.socials {
+    display: flex;
+    gap: $space-3;
+    margin-top: $space-6;
+
+    a {
+        @include flex_center;
+        @include focus_ring;
+        width: 44px;
+        height: 44px;
+        color: $color-text-muted;
+        border: 1px solid $color-border-strong;
+        border-radius: 50%;
+        transition:
+            color $duration-fast $ease,
+            border-color $duration-fast $ease;
+
+        &:hover {
+            color: $color-accent;
+            border-color: $color-accent;
+        }
+    }
+}
+
+// Form
+
+.form_card {
+    @include card($space-5);
     display: flex;
     flex-direction: column;
     gap: $space-4;
-    width: calc(100% - 2 * #{$gutter});
-    max-width: $container-narrow;
-    margin: 0 auto;
 
-    .name_container {
-        display: flex;
-        gap: $space-3;
+    @include media_up($bp-sm) {
+        padding: $space-7;
+    }
+}
 
-        input {
-            flex: 1;
-            min-width: 0;
+.name_row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $space-4;
+
+    @include media_up($bp-sm) {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.field_label {
+    display: block;
+    margin-bottom: $space-2;
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
+    letter-spacing: $tracking-wider;
+    text-transform: uppercase;
+    color: $color-text-subtle;
+}
+
+.label_row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+
+    .counter {
+        font-size: $text-xs;
+        font-variant-numeric: tabular-nums;
+        color: $color-text-subtle;
+
+        &.full {
+            color: $color-danger;
         }
     }
+}
 
-    input[type="text"],
-    input[type="email"],
-    textarea {
-        @include form_input;
-    }
+input,
+textarea {
+    @include form_input;
 
-    textarea {
-        resize: vertical;
-        min-height: 120px;
+    &[aria-invalid="true"] {
+        border-color: $color-danger;
     }
+}
+
+textarea {
+    min-height: 140px;
+    resize: vertical;
+}
+
+.field_error {
+    margin-top: $space-1;
+    font-size: $text-sm;
+    color: $color-danger;
 }
