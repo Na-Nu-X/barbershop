@@ -1,13 +1,13 @@
-<nav class="navigation_bar">
+<nav class="navigation_bar" aria-label="Hlavná navigácia">
     <div class="navigation_container">
-        <button class="hamburger" (click)="toggleMenu()">
-            <i class="fa-solid" [class.fa-bars]="!is_open" [class.fa-xmark]="is_open"></i> <!-- https://fontawesome.com/icons/bars / https://fontawesome.com/icons/magnifying-glass -->
+        <button class="hamburger" type="button" aria-controls="navigation_links" [attr.aria-expanded]="is_open" [attr.aria-label]="is_open ? 'Zavrieť menu' : 'Otvoriť menu'" (click)="toggleMenu()">
+            <i class="fa-solid" [class.fa-bars]="!is_open" [class.fa-xmark]="is_open" aria-hidden="true"></i> <!-- https://fontawesome.com/icons/bars / https://fontawesome.com/icons/xmark -->
         </button>
-    
-        <ul [class.open]="is_open">
-            <li><a href="/">Domov</a></li>
-            <li (click)="scrollTo('.booking_container')"><a>Rezervácia</a></li>
-            <li (click)="scrollTo('.contact_form')"><a>Kontakt</a></li>
+
+        <ul id="navigation_links" [class.open]="is_open">
+            @for (link of links; track link.label) {
+                <li><a [href]="link.section ? '#' + link.section : '/'" (click)="navigate($event, link.section)">{{ link.label }}</a></li>
+            }
         </ul>
     </div>
 </nav>

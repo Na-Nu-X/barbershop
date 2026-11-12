@@ -1,79 +1,46 @@
-import { 
-  Component, 
-  HostListener, 
-  afterNextRender, 
-  ChangeDetectorRef
-} from "@angular/core"
+import { Component, HostListener, inject } from "@angular/core"
+import { Scroll, SectionId } from "../services/scroll"
 
-import { 
-  AsyncPipe, 
-  CurrencyPipe,
-  CommonModule
-} from "@angular/common"
-
-import { FormsModule } from "@angular/forms"
-import { Observable } from "rxjs"
+interface NavigationLink {
+  label:string,
+  section:SectionId|null // Null Scrolls To The Top
+}
 
 @Component({
   selector: "app-navigation-bar",
-  imports: [AsyncPipe, CurrencyPipe, CommonModule, FormsModule],
+  imports: [],
   templateUrl: "./navigation-bar.html",
   styleUrl: "./navigation-bar.scss",
 })
-
 export class NavigationBar {
-  is_open:boolean = false // Stores The Information If The Menu Is Open
-  is_scrolled:boolean = false  // Stores The Information If The Page Is Scrolled
-  cart_amount$!:Observable<number>
-  current_index:number = 0 // Stores The Current Index Of The Active Item
-  
-  constructor(private cdr:ChangeDetectorRef) {
-    afterNextRender(() => {
-      this.checkWindowWidth(window.innerWidth)
-      this.onWindowScroll()
-    })
-  }
+  private ScrollService = inject(Scroll)
 
-  // Method For Toggle The Menu
+  is_open:boolean = false // Stores The Information If The Mobile Menu Is Open
+
+  readonly links:NavigationLink[] = [
+    { label: "Domov", section: null },
+    { label: "Rezervácia", section: "booking" },
+    { label: "Kontakt", section: "contact" }
+  ]
+
+  // Method For Toggle The Mobile Menu
   toggleMenu():void {
-    this.is_open = !this.is_open // Shows / Hides The Menu
+    this.is_open = !this.is_open
   }
 
-  // Window Scroll Functionality
-  @HostListener("window:scroll", [])
-  onWindowScroll():void {
-    if(typeof window !== "undefined") {
-      this.is_scrolled = window.scrollY > 50 // Updates The Information If The Page Is Scrolled
-    }
+  // Method For Navigate To A Section (Keeps The Native Anchor As A No-JS Fallback)
+  navigate(event:MouseEvent, section:SectionId|null):void {
+    event.preventDefault()
+
+    if(section) this.ScrollService.toSection(section)
+    else this.ScrollService.toTop()
+
+    this.is_open = false // Closes The Mobile Menu After Choosing A Link
   }
 
-  // Window Resize Functionality
+  // Closes The Mobile Menu When The Window Grows To Desktop Width
   @HostListener("window:resize", ["$event"])
-  onResize(event:any):void {
-    this.checkWindowWidth(event.target.innerWidth)
-  }
-
-  // Method For Check The Window Width
-  private checkWindowWidth(width:number):void {
-    if(width > 600) {
-      this.is_open = false // Hides The Menu
-    }
-  }
-
-  scrollTo(selector:string):void {
-    if(typeof document !== "undefined") {
-      const element:HTMLElement|null = document.querySelector(selector) as HTMLElement || null // Gets The Element
-
-      if(element) {
-        let offset:number = 60 // Stores The Offset
-        
-        if(element.classList.contains("booking_container")) offset = 60 + 20 + 10 // Sets The Offset (Navigation Bar + Padding)
-        if(element.classList.contains("contact_form")) offset = 60 + 20 + 10 // Sets The Offset (Navigation Bar + Padding)
-
-        const element_position:number = element.getBoundingClientRect().top + window.scrollY // Gets The Element's Position
-
-        window.scrollTo({ top: element_position - offset, behavior: "smooth" }) // Starts The Scroll Animation
-      }
-    }
+  onResize(event:UIEvent):void {
+    if((event.target as Window).innerWidth > 600) this.is_open = false
   }
 }

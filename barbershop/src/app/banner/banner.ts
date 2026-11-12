@@ -1,6 +1,7 @@
-import { Component } from "@angular/core"
+import { Component, inject } from "@angular/core"
 import { Status } from "../services/status"
 import { CommonModule } from "@angular/common"
+import { Scroll } from "../services/scroll"
 
 @Component({
   selector: "app-banner",
@@ -10,6 +11,8 @@ import { CommonModule } from "@angular/common"
 })
 
 export class Banner {
+  protected readonly ScrollService = inject(Scroll)
+
   is_open:boolean = true // Stores The Information If Is Open
   status:string = "" // Stores The Status
   reason:string = "" // Stores The Status Reason
@@ -41,21 +44,4 @@ export class Banner {
   }
 
   constructor(private StatusService:Status) { }
-
-  scrollTo(selector:string):void {
-    if(typeof document !== "undefined") {
-      const element:HTMLElement|null = document.querySelector(selector) as HTMLElement || null // Gets The Element
-
-      if(element) {
-        let offset:number = 60 // Stores The Offset
-        
-        if(element.classList.contains("booking_container")) offset = 60 + 20 + 10 // Sets The Offset (Navigation Bar + Padding)
-        if(element.classList.contains("contact_form")) offset = 60 + 20 + 10 // Sets The Offset (Navigation Bar + Padding)
-
-        const element_position:number = element.getBoundingClientRect().top + window.scrollY // Gets The Element's Position
-
-        window.scrollTo({ top: element_position - offset, behavior: "smooth" }) // Starts The Scroll Animation
-      }
-    }
-  }
 }
