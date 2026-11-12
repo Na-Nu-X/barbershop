@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideZonelessChangeDetection } from "@angular/core"
+import { ApplicationConfig, LOCALE_ID, provideZonelessChangeDetection } from "@angular/core"
 import { provideRouter } from "@angular/router"
 import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS } from "@angular/common/http"
 import { provideClientHydration } from "@angular/platform-browser"
@@ -15,6 +15,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes), 
     provideClientHydration(),
     provideHttpClient(withInterceptorsFromDi()),
+    { provide: LOCALE_ID, useValue: "sk-SK" },
 
     {
       provide: HTTP_INTERCEPTORS,

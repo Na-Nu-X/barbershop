@@ -3,6 +3,7 @@ import { Router, RouterOutlet } from "@angular/router"
 import { NavigationBar } from "./navigation-bar/navigation-bar"
 import { Footer } from "./footer/footer"
 import { Loading } from "./services/loading"
+import { SiteMeta } from "./services/site-meta"
 import { isPlatformBrowser } from "@angular/common"
 
 @Component({
@@ -26,7 +27,9 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
 
   is_loading:boolean = false // Stores The Information If The Page Is Loading
 
-  constructor(private LoadingService:Loading) { }
+  constructor(private LoadingService:Loading, private SiteMetaService:SiteMeta) {
+    this.SiteMetaService.apply() // Sets The Title, Language And Meta Tags
+  }
 
   // Method Which Executes In Beginning
   ngOnInit():void {
